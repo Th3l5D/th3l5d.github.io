@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2017-10-23T23:20:39+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">KRACK : Review</title><link href="http://lsdsecdaemon.com/krack-review" rel="alternate" type="text/html" title="KRACK : Review" /><published>2017-10-22T19:07:10+02:00</published><updated>2017-10-22T19:07:10+02:00</updated><id>http://lsdsecdaemon.com/KRACK-Review</id><content type="html" xml:base="http://lsdsecdaemon.com/krack-review">&lt;p&gt;Salut tout le monde&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2017-10-23T22:13:35+02:00</updated><id>http://localhost:4000/</id><title type="html">Lsd Security Daemon</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><entry><title type="html">KRACK : Review</title><link href="http://localhost:4000/krack-review" rel="alternate" type="text/html" title="KRACK : Review" /><published>2017-10-22T19:07:10+02:00</published><updated>2017-10-22T19:07:10+02:00</updated><id>http://localhost:4000/KRACK-Review</id><content type="html" xml:base="http://localhost:4000/krack-review">&lt;p&gt;Salut tout le monde&lt;/p&gt;
 
 &lt;p&gt;Bon, toute personne ayant suivi un minimum l’actu sécu ces jours ci aura forcément entendu parler de KRACK, la nouvelle vulnérabilité contre le WPA2.&lt;/p&gt;
 
@@ -7,9 +7,7 @@ Mais ici, pas de buzzword comme “WPA2 est cassé”, “Le protocole WPA n’e
 Nan, ici, on va parler technique et expliquer un peu plus en détails le fonctionnement d’une des attaques. Parce que oui, en fait, il y en a plusieurs. Je vais donc expliquer la méthode la plus basique (en espérant ne pas avoir dit trop de bêtises; si c’est le cas, il ne faut pas hésiter à me corriger :) )&lt;/p&gt;
 
 &lt;p&gt;Pour tout comprendre, il faut déjà garder en tête une des finalités de KRACK : pouvoir faire un “Man In The Middle” (on notera les guillemets, j’expliquerai plus bas pourquoi).&lt;br /&gt;
-Maintenant, place aux explications !&lt;/p&gt;
-
-&lt;!--more--&gt;
+Maintenant, place aux explications :&lt;/p&gt;
 
 &lt;h3 id=&quot;back-to-basics&quot;&gt;Back to basics&lt;/h3&gt;
 
@@ -146,9 +144,9 @@ La réponse est simple : si on créé un AP n’ayant pas la même MAC, le calcu
 
 &lt;h3 id=&quot;liens-utiles-&quot;&gt;Liens utiles :&lt;/h3&gt;
 
-&lt;p&gt;Paper : &lt;a href=&quot;https://papers.mathyvanhoef.com/ccs2017.pdf&quot;&gt;https://papers.mathyvanhoef.com/ccs2017.pdf&lt;/a&gt;&lt;br /&gt;
-Site de KRACK Attacks : &lt;a href=&quot;https://www.krackattacks.com/&quot;&gt;https://www.krackattacks.com/&lt;/a&gt;&lt;br /&gt;
-AP Jamming : &lt;a href=&quot;https://people.cs.kuleuven.be/~mathy.vanhoef/papers/acsac2014.pdf&quot;&gt;https://people.cs.kuleuven.be/~mathy.vanhoef/papers/acsac2014.pdf&lt;/a&gt; et &lt;a href=&quot;https://www.cs.montana.edu/yang/paper/jamming.pdf&quot;&gt;https://www.cs.montana.edu/yang/paper/jamming.pdf&lt;/a&gt;&lt;br /&gt;
-Un POC pour tester, tout frais : &lt;a href=&quot;https://pastebin.com/aZyyS16w&quot;&gt;https://pastebin.com/aZyyS16w&lt;/a&gt;&lt;br /&gt;
-Une vidéo de vulgarisation : &lt;a href=&quot;https://www.youtube.com/watch?v=fOgJswt7nAc&quot;&gt;https://www.youtube.com/watch?v=fOgJswt7nAc&lt;/a&gt;&lt;br /&gt;
-L’article de pixis sur cette attaque, je vous le conseille fortement : &lt;a href=&quot;http://beta.hackndo.com/krack/&quot;&gt;http://beta.hackndo.com/krack/&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Salut tout le monde Bon, toute personne ayant suivi un minimum l’actu sécu ces jours ci aura forcément entendu parler de KRACK, la nouvelle vulnérabilité contre le WPA2. Découverte et rendue publique par Mathy Vanhoef, cette attaque permet en gros, d’exploiter une faiblesse dans l’implémentation de WPA2. Mais ici, pas de buzzword comme “WPA2 est cassé”, “Le protocole WPA n’est plus” ou autre trucs de marketeux. Nan, ici, on va parler technique et expliquer un peu plus en détails le fonctionnement d’une des attaques. Parce que oui, en fait, il y en a plusieurs. Je vais donc expliquer la méthode la plus basique (en espérant ne pas avoir dit trop de bêtises; si c’est le cas, il ne faut pas hésiter à me corriger :) ) Pour tout comprendre, il faut déjà garder en tête une des finalités de KRACK : pouvoir faire un “Man In The Middle” (on notera les guillemets, j’expliquerai plus bas pourquoi). Maintenant, place aux explications !</summary></entry></feed>
+&lt;p&gt;Paper : &lt;a href=&quot;https://papers.mathyvanhoef.com/ccs2017.pdf&quot;&gt;https://papers.mathyvanhoef.com/ccs2017.pdf&lt;/a&gt;
+Site de KRACK Attacks : &lt;a href=&quot;https://www.krackattacks.com/&quot;&gt;https://www.krackattacks.com/&lt;/a&gt;
+AP Jamming : &lt;a href=&quot;https://people.cs.kuleuven.be/~mathy.vanhoef/papers/acsac2014.pdf et https://www.cs.montana.edu/yang/paper/jamming.pdf&quot;&gt;https://people.cs.kuleuven.be/~mathy.vanhoef/papers/acsac2014.pdf et https://www.cs.montana.edu/yang/paper/jamming.pdf&lt;/a&gt;
+Un POC pour tester, tout frais : &lt;a href=&quot;https://pastebin.com/aZyyS16w&quot;&gt;https://pastebin.com/aZyyS16w&lt;/a&gt;
+Une vidéo de vulgarisation : &lt;a href=&quot;https://www.youtube.com/watch?v=fOgJswt7nAc&quot;&gt;https://www.youtube.com/watch?v=fOgJswt7nAc&lt;/a&gt;
+L’article de pixis sur cette attaque, je vous le conseille fortement : &lt;a href=&quot;http://beta.hackndo.com/krack/&quot;&gt;http://beta.hackndo.com/krack/&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Salut tout le monde</summary></entry></feed>
