@@ -137,7 +137,7 @@ La phase d’authentification s’appelle le 4 Way Handshake, tout simplement pa
 
 <ul>
   <li>A ce stade, tout semble OK pour le client, il installe sa PTK et GTK. Sauf que l’AP n’ayant pas reçu le ACK du client, il va renvoyer la GTK, avec un compteur incrémenté encore une fois de 1.</li>
-  <li>le client reçoit ce paquet. Que fait il ? Bêtement, il voit un paquet contenant une GTK, il se dit, “OK je réinstalle ma GTK, ma PTK, et je réinitialise mon compteur”</li>
+  <li>le client reçoit ce paquet. Que fait il ? Bêtement, il voie un paquet contenant une GTK, il se dit, “OK je réinstalle ma GTK, ma PTK, et je réinitialise mon compteur”</li>
 </ul>
 
 <p>A ce niveau, que s’est-il passé ? Le serveur à envoyé deux messages contenant la GTK : celui contenant compteur+1, et celui contenant compteur+2 (en soi, la GTK on s’en fout, c’est le compteur qui est important)<br />
