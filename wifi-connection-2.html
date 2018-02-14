@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Le Wifi, comment ça marche 2/2</title>
+
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="canonical" href="http://localhost:4000/wifi-connection-2">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+			<h2>Le Wifi, comment ça marche 2/2</h2>
+<time>Oct 29, 2017</time>
+
+<p>Dans la <a href="http://lsdsecdaemon.com/wifi-connection" target="_blank">première partie</a>, on va vu comment fonctionnait les probes, et l’authentification, mais il reste encore deux ou trois trucs à comprendre avant de pouvoir surfer tranquillement sur google.<br />
+LET’S GO !</p>
+
+<!--more-->
+
+<h3 id="association">Association</h3>
+
+<p>Admettons que tout ce soit bien passé jusqu’à maintenant. Il reste encore une étape obligatoire afin que mon laptop puisse enfin se connecter au reste du réseau, c’est l’association. Jusqu’à maintenant, nous avions découvert les AP via les <em>probes</em>, puis nous avons validé qu’on pouvait s’y connecter avec l’authentification. Du coup, il ne rest plus qu’à finaliser la connexion, via un échange de requête/réponse du type Association.<br />
+La première question qui m’est venue en tête en lisant les docs a été “Pourquoi faire ?!”. Je veux dire, l’AP et la station sont potes maintenant, ils se sont dit des formalités, se sont serrés la pince et tout, donc où est l’intéret ?<br />
+Et bien en fait, tout simplement pour échanger des informations supplémentaires. Dans ces infos, on retrouve par exemple le SSID du wifi, le BSS (Basic Service Set), etc. Il sert également à transmettre l’AID (Association ID) qui est l’équivalent d’une prise réseau dans une architecture câblé (une borne, ça ne sera jamais qu’un switch, donc elle a besoin d’une “prise” sur laquelle le client se branchera).<br />
+Bon maintenant, vous êtes habitués aux trames, donc on va pas y aller par quatres chemins. Le <em>supplicant</em> envoie le premier message, et l’AP la réponse associée :</p>
+
+<p><img src="/assets/images/802-11/association_request.png" alt="Association request" /></p>
+
+<p><img src="/assets/images/802-11/association_request_wireshark.png" alt="Association request wireshark" /></p>
+
+<p>Les paramètres importants de la requête d’association envoyée par la station sont :</p>
+<ul>
+  <li>Le <strong><em>Frame Control</em></strong> positionné à 0x0000</li>
+  <li>Les <strong><em>capabilities</em></strong>, définissant les capacités demandées par l’AP lors du <em>probe response</em> et utilisables par la station. Enfin je crois.</li>
+  <li>Le <strong><em>Listen Interval</em></strong>, qui donne à quelle intervalle de temps le supplicant écoutera les frames de type Beacons, si le Power Save Mode est activé</li>
+  <li>Une foultitude de paramèters taggués, dépendants d’options diverses et variées</li>
+</ul>
+
+<p><img src="/assets/images/802-11/association_response.png" alt="Association response" /></p>
+
+<p><img src="/assets/images/802-11/association_response_wireshark.png" alt="Association response wireshark" /></p>
+
+<p>Sur le même principe, la réponse émise par l’AP sont :</p>
+<ul>
+  <li>Le <strong><em>Frame Control</em></strong> mis à 0x0001</li>
+  <li>Les <strong><em>capabilities</em></strong>, qui valide ce qui a été envoyé par le client.</li>
+  <li>Le <strong><em>Status Code</em></strong>, mis à 0x0000 si l’association s’est déroulée correctement et que les <em>capabilities</em> sont correctes</li>
+  <li>L’<strong><em>Association ID</em></strong>, qui est bahhhh… un ID quoi ^^</li>
+  <li>Et encore une fois plusieurs paramètres optionnels</li>
+</ul>
+
+<p>Je ne détaille pas les différentes capabilities, ni les paramètres taggués, déjà parce que je voulais faire un article, pas réécrire toute la doc, et ensuite parce que ça fait intervenir des notions dont je n’ai pas parlé, et qui ne font pas partie du process de connexion.</p>
+
+<p>Bref, une fois que la réponse a été reçue par la machine, on peut considérer que CA Y EST ! ENFIN, on est connecté au wifi !</p>
+
+<h3 id="wpa-et-wpa2">WPA et WPA2</h3>
+
+<p>Ca y est ? On est connecté ? Vraiment ? Well… Pas tout à fait en fait :D<br />
+Et oui, souviens toi lecteur, jusqu’à présent, on se connectait sur des réseaux “<em>Open</em>” ou “<em>Shared Key</em>”. Mais je n’ai pas encore parlé ici de l’authentification via TKIP ou CCMP !
+Donc, pour des réseaux hotspot ou WEP, on s’arrête ici.<br />
+Par contre, pour les réseaux WPA/WPA2, il reste une étape obligatoire : l’authentification 802.1X (à ne pas confondre avec le 802.11, attention). Bah oui, puisqu’il a fallu rendre le tout un minimum interopérable, on a du rajouter une (dernière) couche après l’association pour ces deux chiffrements.</p>
+
+<p>Concrètement, le 802.1X est une norme, qui utilise le protocole EAP (pour Extensible Authentication Protol). Globalement, un poste (en câblé ou non) voulant accéder au réseau doit pouvoir prouver sa bonne foi. L’équipement directement connecté -un switch sur du câblé ou l’AP pour du wifi- à ce poste bloque tout accès au réseau (il “ferme” le port) tant que l’identité n’est pas validée. Une fois que le poste est validé, il “ouvre” le port afin que la station puisse discuter avec le réseau. Pour prouver son identité, c’est assez libre, on peut utiliser l’adresse MAC, un identifiant AD, ou encore… une clé wifi :)</p>
+
+<p>Comme j’ai déjà expliqué en grande partie cette authentification dans mon article sur KRACK, je ne vais pas m’embéter à tout réécrire ici, et <a href="/krack-review" target="_blank">je vous laisse aller le lire</a> :) Attention cependant, je suis resté assez spécifique au 802.1X wifi. Comme c’est une norme de plus en plus utilisée, il y a pas mal de lecture sur les internets pour du 802.1X cablé, donc je vous laisse le loisir de chercher ^^</p>
+
+<h3 id="le-détail-du-format">Le détail du format</h3>
+
+<p>Depuis tout à l’heure, j’explique le fonctionnement du 802.11 d’une manière assez statique, c’est à dire que pour chaque type de paquet, j’ai détaillé ce qu’on y trouvait.<br />
+En fait, ce protocole est très modulaire (et surtout très casse bonbons). J’ai fait pas mal de réseau au niveau pro, et je pense que c’est un des protos les plus tordus que j’ai pu voir jusqu’à maintenant, du fait de sa modularité, ainsi que des différentes specs rajoutées au fil du temps.<br />
+Bon, du coup, l’idée, c’est de comprendre le fonctionnement générique de ce protocole, et non pas juste de voir quelques paquets en dur comme on a fait jusqu’à présent.<br />
+Quand je dis comprendre, c’est en partie car il serait trop long de tout expliquer. En fait, chaque champ va en fait définir un subset de champs, et pareil pour chaque paramètre du subset, ce qui peut créer une ramification assez… tordue ! Disons le autrement : c’est le bordel. Je répète : LE BORDEL.</p>
+
+<p>Gentle reminder : ici, on lit les octets en <em>little endian</em>.</p>
+
+<p><img src="/assets/images/802-11/general_frame_control.png" alt="Frame Control" /></p>
+
+<p>L’idée principale, c’est que CHAQUE paquet envoyé en wifi contient un en-tête 802.11. Pour que tout fonctionne correctement, il doit être normé. Ainsi, la première partie de la frame s’appelle le MAC header, et on retrouvera toujours en première position un champ Frame Control, codé sur deux octets. Ce champ est EXTREMEMENT important, puisque c’est lui qui définir les champs suivants.
+Il se divise en 3 parties :</p>
+
+<p><img src="/assets/images/802-11/frame_control1.png" alt="Frame Control byte 1" /></p>
+
+<ul>
+  <li>Les bits 6 et 7 correspondent à la version du protocole. La doc 802.11 définit que la version est actuellement 0. Donc, hormis un bug/attaque/autre, ces bits ne changent pas et seront à 00</li>
+  <li>Les bits 4 et 5 correspondent au type de paquet. Il en existe 4 :
+    <ul>
+      <li>Management (bits 00) : Ils permettent d’envoyer des “commandes” entre la station et l’AP. Typiquement les probes, les authentications et les associations sont de type management</li>
+      <li>Control (bits 01) : Ils servent à contrôler que tout se passe bien. On trouve les <em>ACKnowledgement</em>, mais aussi d’autres (comme les RTS, qui servent à demander la parole sur le réseau)</li>
+      <li>Data (bits 10) : Ils contiennent les données des couches supérieures du modèle OSI (ARP, IP, TCP, HTTP, etc) et seront donc envoyées à la stack réseau</li>
+      <li>Extension (bits 11) : Ils sont utilisé pour étendre les fonctionnalités, mais on va pas s’embéter avec ça.</li>
+    </ul>
+  </li>
+  <li>Les bits 0 à 3 correspondent au sous-type de paquet. Je ne vais pas tous les lister parce qu’il en existe beaucoup, mais on trouve par exemple :
+    <ul>
+      <li>Association Request (bits 0000)</li>
+      <li>Association Response (bits 0001)</li>
+      <li>Authentication (bits 1011)</li>
+      <li>Request To Send (RTS) (bits 1011)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>On remarque au passage qu’un sous type RTS et Authentication ont les mêmes bits. C’est normal : puisque le type (les bits 4 et 5) est différent, ils ne se marchent pas sur les pieds :)<br />
+Ainsi, si je veux envoyer une requête d’authentification, mon Frame Control correspondra à :</p>
+
+<ul>
+  <li>Version 0 : bits 00</li>
+  <li>Type Management : bits 00</li>
+  <li>Sous type Authentication : bits 1011</li>
+</ul>
+
+<p>On aura ainsi un octet 1011 00 00, soit 0x0b.</p>
+
+<p>A l’inverse, pour un paquet RTS, le Frame Control sera :</p>
+
+<ul>
+  <li>Version 0 : bits 00</li>
+  <li>Type Management : bits 01</li>
+  <li>Sous type Authentication : bits 1011</li>
+</ul>
+
+<p>Ce qui nous donne 1011 01 00, soit 0xb4.</p>
+
+<p><img src="/assets/images/802-11/frame_control2.png" alt="Frame Control byte 2" /></p>
+
+<p>Le deuxième octet du Frame Control est dépendant du premier. Si le type est de 1 et le sous type de 6, on est dans une frame Control/Extension, et les paramètres seront donc spécifiques à l’extension. On va pas trop y toucher dans cet article (ni dans aucun autre d’ailleurs :) ), parce que c’est déjà assez bordélique au niveau du fonctionnement basique.<br />
+Pour tous les autres types/sous types, on retrouvera une liste fixe de paramètres :</p>
+<ul>
+  <li>To DS (Distribution System) : avec le champ suivant, cela permet en gros de savoir si une machine veut discuter sur le réseau avec une autre machine, ou si c’est de la communication entre l’AP et la station. <a href="https://dalewifisec.wordpress.com/2014/05/17/the-to-ds-and-from-ds-fields/" target="_blank">Plus de détails ici.</a></li>
+  <li>From DS : bah du coup, faut lire l’explication du champ précédent :)</li>
+  <li>More Fragment : mis à 1 s’il reste d’autres paquets pour un message donné (c’est la fragmentation réseau : un paquet à une taille définie et si le message a envoyer est plus long, on le coupe en plusieurs paquets)</li>
+  <li>Retry : mis à 1 si le paquet a été ré-émis une seconde fois par la source (donc si celle ci n’a pas reçu de ACK)</li>
+  <li>Power Management : pour tout ce qui est gestion de la batterie des machines. Le wifi étant utilisé pour des postes nomades, un gestion de l’énergie a été mise en place dans les specs</li>
+  <li>More Data : ce bit est également utilisé pour la gestion d’énergie et indique que des données sont sur l’AP, en attente d’envoi vers le <em>supplicant</em>.</li>
+  <li>Protected Frame : assez explicite :) Ce champ est mis à 1 quand le payload du paquet est chiffré via WEP/WPA/WPA2. On le retrouve dans dans les frames datas par exemple</li>
+  <li>+HTC/Order : c’est un champ un peu bâtard. On met le +HTC (High Throughput Control) à 1 dans les frames de type Control Wrapper. Ce type de frame a surement une utilité. Mais je sais pas laquelle. Lorsque le paquet n’est pas un Control Wrapper, il sert à ordonnancer les frames QoS.</li>
+</ul>
+
+<p>On voit donc que ces deux premiers octets vont définir le comportement global de la frame. Maintenant, attelons nous aux autres champs. Comme dit plus haut, je ne vais pas TOUT détailler, puisqu’il existe beaucoup de combinaisons possibles, en fonction du type/sous type.</p>
+
+<p><img src="/assets/images/802-11/general_duration_id.png" alt="Duration-id" /></p>
+
+<p> 
+Ensuite, toujours dans le MAC header, on trouve le champ Duration/ID, d’une taille de 2 octets. Ce champ est fonction du type/sous type, et peut avoir quatre types de valeurs possibles. Je résume rapidement parce que la définition complète de ce champ fait 4 pages dans la doc (oui oui. Quatre), mais en gros, il correspond soit à l’Association ID (dont j’ai parlé plus haut), soit à une durée pour envoyer un ACK, soit à une valeur fixe de 32768.</p>
+
+<p><img src="/assets/images/802-11/general_addresses.png" alt="Addresses" /></p>
+
+<p>Suite à ce Duration/ID, viennent les champs Addresses. Généralement, dans un paquet, on trouve un tuple de deux adresses (MAC source et dest, IP source et dest, etc). Là non. On peut en avoir entre une et quatre.
+Pourquoi jusqu’à quatre adresses ? Et bien en fait, c’est logique :</p>
+<ul>
+  <li>la Receiving Address (RA) :  l’adresse MAC de la machine qui recoit le paquet</li>
+  <li>la Transmitting Address (TA) : l’adresse MAC de la machine qui transmet le paquet.</li>
+  <li>la Source Address (SA) : l’adresse MAC de la machine source</li>
+  <li>la Destination Address (DA) : l’adresse MAC de la machine qu’on cherche à joindre (un autre poste du LAN ou la <em>gateway</em>)</li>
+</ul>
+
+<p>Ici quelques explications s’imposent : Dans un réseau Wifi, il n’y a pas forcément qu’une seule borne. Il est fréquent que plusieurs bornes utilisent le même réseau wifi. Ainsi, si ma bécane veut discuter avec google, elle va envoyer un paquet à la borne sur laquelle elle est connectée avec sa propre MAC comme SA et la <em>gateway</em> comme DA (bah oui, on discute avec la GW, pas avec google directement). Le champ TA sera également celui de mon laptop, et le champ RA sera la MAC de la borne wifi. Si cette borne est juste un relais, elle va donc devoir envoyer ce paquet à une seconde borne. A ce moment, elle va changer les champs TA et RA. TA deviendra donc l’addresse de la première borne et SA celle de la seconde borne. Cette deuxième AP va ensuite envoyer le paquet à la gateway. Lorsque la réponse arrivera, le chemin inverse sera effectué. Cela dit, un beau schéma, c’est toujours mieux :</p>
+
+<p><img src="/assets/images/802-11/addresses.png" alt="Addresses explanation" /></p>
+
+<p>Comme toujours les champs addresses correspondent aux types et sous type. Par exemple, les frames de controle n’ont pas besoin des 4, puisque l’AP communique directement avec mon PC.</p>
+
+<p><img src="/assets/images/802-11/general_bssid.png" alt="BSS ID" /></p>
+
+<p>On peut dans certaines trames également trouver le champ <em>BSS ID</em> qui correspond à la MAC de l’AP.</p>
+
+<p><img src="/assets/images/802-11/general_seq_control.png" alt="Sequence Control" /></p>
+
+<p>Ce champ se divise en deux parties : une première de 4 bits qui indique le numéro de fragmentation, et une seconde de 12 bits qui est le numéro de séquence. Qui est… bah un numéro quoi. qui s’incrémente et tout.</p>
+
+<p><img src="/assets/images/802-11/general_body.png" alt="Frame Body" /></p>
+
+<p>ENFIN ! ON arrive au <em>Frame Body</em> (c’est pas trop tôt, l’article est commencé depuis 3 mois).
+Le <em>Frame Body</em> a toujours une taille variable. Tout simplement parce qu’il est inhérent à chaque paquet.</p>
+
+<p>Pour les frames de types données, c’est plutôt simple :  on envoie la sauce, avec toutes les couches OSI supérieures (mais si lecteur, tu sais bien, le truc qu’on appelle IP par exemple). Là, il n’y a pas à débattre, tout ce qui est envoyé ici n’a aucun rapport avec le 802.11. La taille peut aller de 0 à 2304 octets. Si on a un message plus gros à faire passer, on doit mettre le bit More Fragments à 1. Une fois que le paquet est reçu, la stack réseau prend le relais et envoie le paquet au niveau applicatif.</p>
+
+<p>Ensuite, les frames de type management et controle : vous connaissez le refrain maintenant : “Ca dépend du type et du sous type”. On ne change pas une équipe qui gagne.<br />
+EN fait, des exemples, j’en ai déjà donné plusieurs tout au long de l’article : les probes, les authentications, les associations, etc. Ici la taille est en fonction des paramètres envoyés. Elle peut avoir une taille qui va de 0 (pour les types ACK par exemple) à 2304. Cela dit, on a rarement 2304 octets des paramètres à envoyer d’un coup ! ^^</p>
+
+<p><img src="/assets/images/802-11/general_fcs.png" alt="Frame Check Sequence" /></p>
+
+<p>Après le <em>Frame Body</em>, on trouve le truc le plus simple du proto : le Fram Check Sequence (FCS). C’est toujours un champ de 4 octets, qui contient un CRC32 du MAC header et du <em>Frame Body</em>. Les plus malins auront compris qu’il sert à vérifier l’intégrité du paquet :) Si le CRC32 est bon, le paquet est accepté et transmis vers la destination. Dans ce cas, un ACK est envoyé à la source pour dire “wesh gros, j’ai fait passer ton petit mot”. Si le FCS est faux, c’est qu’il y a eu erreur. A ce moment, l’AP ne prévient même pas qu’il y a eu un souci. Du coup, mon PC attend un certain moment, puis renvoie le paquet avec le champ Retry à 1.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Pfiouuu, c’était compliqué. 3500 pages à se taper (bon pas tout quand même, j’ai fait pas mal de Ctrl + F), des recherches dans les tréfonds des internets du web, un article de plus de 30000 caractères, mais bon, au moins, je sais ce qui se passe le matin, quand mon laptop boote et que je bois mon café :)<br />
+En tout cas, même si j’ai galeré, j’ai beaucoup appris techniquement, c’est un très bon exercice à faire, et j’espère que vous aurez aussi appris 2 ou 3 choses !</p>
+
+<p>Oh, et du coup, suite à KRACK, la Wi Fi Alliance a décidé de faire bouger les choses avec la mise en place du WPA3. A cela, deux solutions : soit ils vont updater les specs pour rajouter toujours plus de bazar, soit ils vont créer une nouvelle spec from scratch, et cet article ne sera bientôt plus utile ^^</p>
+
+<p>Enjoy</p>
+
+<p>The lsd</p>
+
+<h3 id="liens-utiles">Liens utiles</h3>
+
+<p>Tous les liens qui m’ont servi à comprendre le 802.11</p>
+
+<ul>
+  <li><a href="http://ieeexplore.ieee.org/document/7786995/" target="_blank">ieeexplore.ieee.org</a> : le lien vers la doc officielle, évidemment. Attention par contre, il faut s’inscire</li>
+  <li><a href="https://mrncciew.com/" target="_blank">mrncciew.com</a> : une bible. C’est pas super beau, un peu brouillon, mais beaucoup d’infos !</li>
+  <li><a href="https://www.cwnp.com/forums/" target="_blank">www.cwnp.com</a> : un forum dédié au wifi. C’est le site officiel de la certif CWNP, donc il y a des infos de qualité</li>
+  <li><a href="https://documentation.meraki.com/MR/WiFi_Basics_and_Best_Practices/802.11_Association_process_explained" target="_blank">meraki.com</a> : un résumé high level des étapes de connexion</li>
+  <li><a href="https://www.cisco.com/c/en/us/support/docs/wireless-mobility/wlan-security/68583-FAQ-Wireless-Security.html" target="_blank">cisco.com</a> : de la doc sur les méthodes de chiffrement</li>
+  <li><a href="https://supportforums.cisco.com/t5/wireless-mobility-documents/802-11-sniffer-capture-analysis-wpa-wpa2-with-psk-or-eap/ta-p/3116990" target="_blank">cisco.com</a> : quelques explications sur les frames d’authentification</li>
+  <li><a href="http://community.arubanetworks.com/t5/Technology-Blog/A-closer-look-at-WiFi-Security-IE-Information-Elements/ba-p/198867" target="_blank">arubanetworks.com</a> : des explications un peu plus détaillées que moi sur le RSN et TSN (Transitional Security Network, un truc qui a servi à passer de WEP à WPA2)</li>
+  <li><a href="http://fiddy.free.fr/blog/index.php?post/2008/11/25/Le-WEP-suffisamment-s%C3%A9curis%C3%A9" target="_blank">fiddy.free.fr</a> : explications détaillées en en français sur le chiffrement WEP, et pourquoi c’est tout pété</li>
+  <li><a href="/assets/zip/802.11/files_802.11.zip">Fichiers utiles</a> : Des pcap épuré pour pouvoir regarder le détail, et un html avec les schémas de la struct</li>
+</ul>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://lsdsecdaemon.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017</p>
+</footer>
+
+	</main>
+</body>
+
+</html>

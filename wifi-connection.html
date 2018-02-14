@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Le Wifi, comment ça marche 1/2</title>
+
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="canonical" href="http://localhost:4000/wifi-connection">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+			<h2>Le Wifi, comment ça marche 1/2</h2>
+<time>Oct 29, 2017</time>
+
+<p>Bon, maintenant qu’on a expliqué <a href="http://lsdsecdaemon.com/krack-review" target="_blank">KRACK dans les détails</a>, on va gratter un peu la surface et regarder comment fonctionne le mécanisme de connexion dans sa globalité.<br />
+Lorsqu’on se connecte sur une borne wifi, il se passe en réalité plein de choses <em>under the hood</em>, dont personne ne se rend compte.<br />
+Le but de cet article est donc de démystifier un peu le fonctionnement d’une connexion classique à un AP, ce qui va permettre de préparer le terrain pour le post suivant, qui expliquera comment faire des bidouilles sympas (par exemple du jamming).</p>
+
+<!--more-->
+
+<h3 id="généralités">Généralités</h3>
+
+<p>Avant de commencer, je pose quelques détails généraux, histoire qu’on parte sur de bonnes bases :)</p>
+
+<p>Une chose importante à prendre en compte, c’est qu’on est sur du réseau wifi. Qui dit wifi dit ondes. Et qui dit ondes dit (forcément) écoute via le mode monitor des cartes wifi. Pour expliquer un peu , il existe 4 modes au niveau wifi :</p>
+
+<ul>
+  <li>le mode <strong>classique</strong>, que tout le monde utilise. J’utilise le mot classique par défaut, je ne sais pas s’il y a un mot plus exact</li>
+  <li>le mode <strong><em>promiscuous</em></strong> (qui existe également au niveau cablé). Ce mode permet de récupérer tous les paquets qui ne nous sont pas adressés directement (qui n’ont pas comme adresse de destination notre MAC techniquement). Ce mode s’utilise lorsqu’on est déjà connecté à un réseau wifi</li>
+  <li>le mode <strong><em>monitor</em></strong> (pour le coup, il n’y a pas d’équivalent cablé) qui nous donne la possibilité de récupérer littérallement TOUS les paquets. C’est grâce à ce mode qu’on va pouvoir faire des trucs cools (au hasard péter des clés wifi)</li>
+  <li>le mode <strong><em>injection</em></strong>, qui permet d’aller encore plus loin que le monitor. Avec ce mode, on peut envoyer des paquets alors même qu’aucun réseau wifi n’est connecté avec la carte. En gros, on peut envoyer tout et n’importe quoi. Là aussi, c’est plutôt cool pour certaines attaques.</li>
+</ul>
+
+<p>Dans cet article, les paquets que je montre  sont des versions “figées”, c’est à dire spécifiques à chaque type de trame. Les termes mis en gras dans les images des trames sont les plus importants et donc ceux que j’explique. J’ai mis également des screenshots wireshark pour la gloire, histoire de voir concrètement la gueule des paquets.<br />
+J’explique en fin de post le fonctionnement générique des trames 802.11. J’dis ça, j’dis rien, mais pour comprendre le réseau, vaut mieux aller lire les détails :)</p>
+
+<p>Les puristes du réseau pourront me rétorquer qu’il existe des différences entre une trame et un paquet. Ma réponse est simple : osef. D’une part parce qu’on arrive très bien à comprendre l’idée générale, et d’autre part pour éviter des répétitions dans tous les sens.</p>
+
+<p>Oh, et n’oublions pas aussi que la doc fait quand même TROIS MILLES CINQ CENT PAGES. Il est donc possible que je me sois planté à certains endroits, dans ce cas, il ne faut pas hésiter à me coriger :)</p>
+
+<h3 id="découverte">Découverte</h3>
+
+<p>9h du matin : j’allume mon laptop, la séquence de boot passe tranquillement pendant que je bois mon café, et quand je reviens devant mon PC, mon network manager me propose une liste de wifi sur lequel me connecter. OK c’est cool, je choisis mon réseau, la connexion se fait, et je commence ma journée de boulot.<br />
+Mais du coup… il s’est passé quoi exactement ?</p>
+
+<p>Et bien dans un premier temps, mon laptop a envoyé un gros paquet des familles, qui dit plus ou moins :</p>
+
+<p>“HEY HO ! ON SE REVEILLE LES ACCESS POINT ! MOI DE MON COTÉ, JE PEUX COMPRENDRE SI VOUS ME PARLEZ FRANCAIS OU ANGLAIS”.</p>
+
+<p>Ce paquet, c’est ce qu’on appelle un <strong><em>Probe Request</em></strong>.<br />
+Pour expliquer plus sérieusement, mon portable a fait une requête en <em>broadcast</em> (donc à destination de tout le monde) afin d’annoncer à tous les réseaux alentours qu’il a besoin de se connecter à un wifi, et qu’il peut utiliser certains paramètres (au hasard, la version A/B/G/N, mais également d’autres).<br />
+Evidemment, les paquets de ce genre sont normés, grâce au standard 802.11, et ressemblent techniquement à cela :</p>
+
+<p><img src="/assets/images/802-11/probe_request.png" alt="Probe Reponse" /></p>
+
+<p><img src="/assets/images/802-11/probe_request_wireshark.png" alt="Probe Reponse Wireshark" /></p>
+
+<p>Je ne vais pas expliquer tous les champs, mais pour faire simple, on a ici 4 informations importantes (il y en a d’autres évidemment) :</p>
+
+<ul>
+  <li>le <strong><em>Frame Control</em></strong> : une valeur de 0x0004 correspond à un paquet de type probe request.</li>
+  <li>la <strong><em>Destination Address</em></strong> : l’adresse MAC de la borne wifi à qui le paquet est envoyé. Je disais plus haut que les <em>probes requests</em> envoyaient en broadcast, mais il est aussi possible d’envoyer en <em>unicast</em> (vers une seule machine), ici 00:0E:9E:51:AC:11. Ca permet de moins congestionner le réseau.</li>
+  <li>la <strong><em>Source Address</em></strong> : l’adresse MAC de mon portable, afin que les AP puissent me répondre.</li>
+  <li>le <strong><em>Frame Body</em></strong> : alors là, c’est un peu le bordel, parce que les normes wifi ont évolué au fil du temps. Du coup, les paramètres renseignés dans le <em>Frame Body</em> sont carrément variables. Dans la version 2016 de la norme 802.11, on trouve jusqu’à 20 champs (tableau 9.33, page 706). Chaque champ se compose de 3 parties : un ID, la taille du champ, et sa valeur. Ils permettent de définir les capacités du <em>supplicant</em> (le client Wifi), afin que l’AP sache s’il pourra répondre ou non. On retrouve comme informations, les channels utilisables, les taux de transfert, et en fonction de pas mal de paramètres, d’autres informations.</li>
+</ul>
+
+<p>Pour information, tout ce qui précède le <em>Frame Body</em> est appelé le <strong><em>MAC Header</em></strong>. On en reparlera pas, mais sachez le :)<br />
+De plus, le <em>Frame Body</em> est différent selon les paquets. Ici, on a uniquement des paramètres taggués. Comme on ne peut pas savoir à l’avance quels paramètres seront présents, on est obligé d’utiliser un principe de tags pour chaque champ (d’où l’utilisation d’ID). Le Frame Body étant spécifique selon les paquets, cela ne sera pas toujours le cas. On pourra trouver des paramètres fixes (donc pas besoin d’ID). Don’t worry, j’explique tout bien komilfo à la fin.</p>
+
+<p>Bref. Une fois que cette étape est passée, les AP qui sont à portée vont répondre à ma machine deux choses :<br />
+La première, c’est :</p>
+
+<p>“Ok  mec, pas la peine de crier, je t’ai entendu.”</p>
+
+<p>C’est l’<strong><em>ACK</em></strong> (<em>ACKnowledgment</em>) que l’AP envoie au <em>supplicant</em>, juste pour valider que le message a bien été reçu.<br />
+C’est un paquet très court, qui ne contient quasiment rien. Il est tellement court, qu’il ne contient même pas l’adresse MAC de la source ! Après quelques recherches, on explique <a href="https://stackoverflow.com/questions/37040303/why-do-802-11-acknowledgement-frames-have-no-source-mac" target="_blank">ici</a>, <a href="http://cnp3book.info.ucl.ac.be/2nd/html/protocols/wifi.html" target="_blank">là</a> et dans le §9.2.8 de la doc que c’est normal qu’il n’y ait pas de source parce que l’AP ne peut répondre qu’à une seule machine pendant un court laps de temps, grâce à un <em>timer</em>. Du coup, on sait forcément à qui s’adresse le ACK et ça fait un paquet plus court à envoyer.<br />
+Voilà à quoi ressemble un <em>ACK</em> :</p>
+
+<p><img src="/assets/images/802-11/ack.png" alt="ACK packet" /></p>
+
+<p><img src="/assets/images/802-11/ack_wireshark.png" alt="ACK packet Wireshark" /></p>
+
+<p>Au niveau des infos, c’est plus simple, vu que le but du jeu, c’est juste que l’AP dise que le message est bien arrivé. Dans les champs utiles, on a simplement :</p>
+
+<ul>
+  <li>un <em>Frame Control</em> qui correspond à 0x00D4,</li>
+  <li>l’adresse de destination, qui est donc l’adresse source du <em>probe request</em>.</li>
+</ul>
+
+<p>Ce message apparait quasiment après chaque paquet reçu, je n’en parlerai plus à partir de maintenant, mais il faut garder en tête qu’il est (presque) toujours présent.</p>
+
+<p>La deuxième chose, c’est ça :</p>
+
+<p>“Toi et moi, c’est un match, tiens voilà mes infos si tu veux qu’on discute ensemble”.</p>
+
+<p>C’est le <strong><em>Probe Response</em></strong>. Techniquement, il contient, comme pour la requête, plusieurs informations utiles au client (nom du constructeur, SSID, channel, etc) et ressemble beaucoup au Probe Request :</p>
+
+<p><img src="/assets/images/802-11/probe_response.png" alt="Probe Response" /></p>
+
+<p><img src="/assets/images/802-11/probe_response_wireshark.png" alt="Probe Response Wireshark" /></p>
+
+<p>Dans la liste des champs intéressants, on retrouve les mêmes choses que pour le probe request (<em>Frame Control</em>, Destination, Source, <em>Body</em>).<br />
+Evidemment, les MAC source et destination sont inversées, et le <em>Frame Body</em> est différent. Celui-ci, encore une fois très important, donne des informations, comme le type de chiffrement utilisé (j’en reparle un peu plus loin), qui permettent à mon PC de savoir s’il est en capacité de se connecter à cet AP.</p>
+
+<p>Bon, maintenant que les réponses des bornes ont été récupérées par ma machine, elle décide quel est le meilleur réseau auquel se connecter, en fonction de plusieurs paramètres, du genre la puissance du signal, le réseau préféré, ou encore le débit proposé. Libre à l’OS de choisir ce qu’il veut. Le mien, par exemple, a une fâcheuse tendance à choisir le réseau le plus pourri.
+Une fois que le choix est fait, on va passer à la phase suivante : l’authentification.</p>
+
+<h3 id="authentification">Authentification</h3>
+
+<p>On a découvert les réseaux à proximité, on va donc pouvoir s’attaquer à la deuxième étape : l’authentification.<br />
+Une fois que le <em>supplicant</em>  a choisi son AP, il va devoir lui dire qu’il veut se connecter. Et alors là… C’est le bordel. Grave.</p>
+
+<p>Pour s’authentifier, le client va donc envoyer une première requête. Cette requête va contenir un élément important : le type d’authentification. Soit <strong><em>Open</em></strong>, soit <strong><em>Shared Key</em></strong>. Bêtement, on pourrait penser que <em>Open</em> correspond aux réseaux ouverts (wifi mcdo ou autres), et que <em>Shared Key</em> correspondrait aux wifi authentifié (WEP et WPA/WPA2). MAIS NON.<br />
+La blague dans l’histoire, c’est que :</p>
+
+<ul>
+  <li><em>Shared Key</em> correspond à du chiffrement WEP,et uniquement à du WEP (§12.3.3.3.1 de la doc 802.11)</li>
+  <li><em>Open</em> correspond à un wifi ouvert… ou alors à du chiffrement via WPA/WPA2. Les maux de têtes commencent à arriver ? Ce n’est que le début.</li>
+</ul>
+
+<p>C’est débile, oui, mais pourquoi ? En fait, à la mise en place de la norme 802.11, les créateurs n’ont prévu à la base que de wifi non chiffré, ou chiffré en WEP. Du coup, il faut prendre en compte que tout ce qui n’est pas WEP, est <em>Open</em>.</p>
+
+<p>Maintenant, comment mon ordinateur sait que l’AP m’a proposé du non chiffré, du WEP, du WPA, ou du WPA2 ?<br />
+A la base, c’était simple. Le <em>Probe Response</em> contenait un champ <strong><em>Privacy</em></strong> (un bit mis à 1) qui définissait ou non l’utilisation du WEP. Et puis, ce fut le drame.<br />
+Lorsque l’IEEE s’est rendu compte que WEP était pété, il ont sorti un truc à l’arrache, histoire colmater un peu : le WPA. Ce WPA utilise un chiffrement de type TKIP.<br />
+SAUF QUE, comme il a été fait un peu à la wanagain bistoufly, les mecs se sont dit qu’ils allaient préparer un truc plus propre pour la suite : WPA2, qui utilise du CCMP.<br />
+SAUF QUE, histoire que tout soit bien retrocompatible, quand ils ont fait l’amendement 802.11i (qui officialise WPA/WPA2), les bonhommes ont décidé que WPA devrait AUSSI supporter CCMP, et que WPA2 devrait AUSSI supporter TKIP.<br />
+SAUF QUE, encore une fois, histoire de compatibilité, il a fallu faire des bidouilles <em>from space</em>. Donc, pour WPA, il a fallu utiliser un paramètre optionnel spécifique (le tag 221) qui liste les chiffrements disponibles en WPA. Pour WPA2, ils ont créé un autre paramètre : le RSN (Robust Security Network).
+(Evidemment, trouver ça dans 3500 pages de doc… bisou.)</p>
+
+<p>Donc, pour résumer le fonctionnement, dans le <em>Probe Response</em>, ça se passe comme ça :</p>
+<ul>
+  <li>Mode <em>Shared</em> : WEP</li>
+  <li>Mode <em>Open</em> :
+    <ul>
+      <li>tag RSN :
+        <ul>
+          <li>CCMP et/ou TKIP (mode WPA2)</li>
+        </ul>
+      </li>
+      <li>tag optionnel 221 :
+        <ul>
+          <li>CCMP et/ou TKIP (mode WPA)</li>
+        </ul>
+      </li>
+      <li>aucun tag :
+        <ul>
+          <li>wifi non chiffré</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>En fonction de ces informations, ma bécane saura ainsi lors de cette première requête de la phase d’authentification s’il faut envoyer une demande <em>Shared</em> ou <em>Open</em>.</p>
+
+<p>On va commencer par étudier le type <em>Open</em>, c’est le plus simple :)<br />
+La requête qu’envoie mon PC, c’est littéralement :</p>
+
+<p>“Hey, psst, hey ! Tu me laisses rentrer s’il te plait ?”</p>
+
+<p>Comme d’hab, je met le petit schéma de la requête. Pour le coup, j’ai détaillé le <em>Frame Body</em> parce qu’il est important de comprendre ce qu’il contient.</p>
+
+<p><img src="/assets/images/802-11/authentication_open_msg1.png" alt="Open Authentication request" /></p>
+
+<p><img src="/assets/images/802-11/authentication_open_msg1_wireshark.png" alt="Open Authentication request Wireshark" /></p>
+
+<p>Tout se joue donc au niveau du <em>Frame Body</em>. En mode <em>Open</em>, on trouve trois champs :</p>
+<ul>
+  <li>l’<strong><em>Authentication algorithm</em></strong> : qui correspond à 0x0000</li>
+  <li>l’<strong><em>Authentication SEQuence</em></strong> : puisque c’est le premier message de l’authent, il correspond à 0x0001</li>
+  <li>le <strong><em>Status Code</em></strong> : tout se passe bien, il est à 0x0000</li>
+</ul>
+
+<p>Une fois que l’AP a reçu ce message d’authentification, il va bien évidemment y répondre. La réponse est quasiment identique à la requête. Dans le <em>Frame Body</em>, le seul champ différent est l’Authentication SEQuence qui passe à 0x0002. Le reste ne bouge pas, si tout se passe bien :</p>
+
+<p><img src="/assets/images/802-11/authentication_open_msg2.png" alt="Open Authentication response" /></p>
+
+<p><img src="/assets/images/802-11/authentication_open_msg2_wireshark.png" alt="Open Authentication response Wireshark" /></p>
+
+<p>Une fois que la réponse est envoyée au client (et que l’AP a bien reçu le ACK qui suit), tout est ok, les deux machines sont dans un état authentifié, mais non associé. Je parle de l’association après, mais pour l’instant, étudions un peu l’authentification en mode <em>Shared</em>.</p>
+
+<p>En mode <em>Shared</em> (donc WEP), il y a un <strong><em>4Way handshake</em></strong>, qui permet de valider la clé Wifi, sans qu’elle ne passe en clair sur le réseau (bon, ça n’a pas été suffisant pour péter le WEP, mais l’intention était louable :) )<br />
+Le premier message est, à l’instar du mode <em>Open</em>, envoyé par le client et est identique, hormis l’<em>Authentication Algorithm</em>, qui correspond cette fois ci à 0100, pour signifier le mode <em>Shared</em>. Malheureusement, je n’ai pas d’équipements qui me permette de faire d’authent WEP sous la main, donc j’ai honteusement (ou pas) “emprunté” des images venant de <a href="https://mrncciew.com/2014/10/10/802-11-mgmt-authentication-frame/" target="_blank">mrncciew.com</a>. On lui dit merci :)</p>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg1.png" alt="Shared Authentication request" /></p>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg1_wireshark.png" alt="Shared Authentication request Wireshark" /></p>
+
+<p>Le second message, envoyé par l’AP, va faire les actions suivantes : incrémenter le numéro de séquence pour le passer à 0x0002, et envoyer un paramètre taggé (id 16), qui correspond à un challenge que ma machine devra utiliser pour valider la clé Wifi. La valeur de ce challenge est une chaine pseudo aléatoire de 128 octets.</p>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg2_wireshark.png" alt="Shared Authentication challenge Wireshark" /></p>
+
+<p>Un troisième message va être envoyé par le supplicant. Celui ci va contenir principalement :</p>
+<ul>
+  <li>l’Initialization Vector (IV), qui permet d’éviter d’avoir deux messages chiffrés identiques pour un même clair</li>
+  <li>l’Integrity Check Value (ICV), qui est un bête CRC32 du challenge clair</li>
+  <li>le challenge response, qui est (IV + challenge) chiffré avec la clé WEP.</li>
+</ul>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg3_wireshark.png" alt="Shared Authentication challenge validation Wireshark" /></p>
+
+<p>Une fois ce message reçu par l’AP, ce dernier va déchiffrer le challenge, vérifier qu’il correspond bien à son ICV, et vérifier qu’il correspond au clair envoyé dans le message 2.<br />
+Si le challenge et sa réponse sont équivalents, l’AP va donc envoyer un dernier message de validation, les données du <em>Frame Body</em> seront classiques : l’Authentication Algorithm toujours positionné à <em>Shared Key</em>, l’Authentication SEQuence à 0x0004, et le Status Code à 0x0000.</p>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg4.png" alt="Shared Authentication response" /></p>
+
+<p><img src="/assets/images/802-11/authentication_shared_msg4_wireshark.png" alt="Shared Authentication response Wireshark" /></p>
+
+<p>A l’inverse, s’il y a un souci (mauvaise clé par exemple), le Status Code sera différent de 0x0000 et l’AP considérera que le client n’a pas pu s’authentifier.<br />
+Ouf, next step !</p>
+
+<p>Pour la suite, <a href="/wifi-connection-2">c’est par ici</a></p>
+
+<p>Enjoy</p>
+
+<p>The lsd</p>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://lsdsecdaemon.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017</p>
+</footer>
+
+	</main>
+</body>
+
+</html>
