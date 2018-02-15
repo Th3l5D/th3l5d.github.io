@@ -1,4 +1,793 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2017-10-24T09:55:17+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">KRACK : Review</title><link href="http://lsdsecdaemon.com/krack-review" rel="alternate" type="text/html" title="KRACK : Review" /><published>2017-10-22T19:07:10+02:00</published><updated>2017-10-22T19:07:10+02:00</updated><id>http://lsdsecdaemon.com/KRACK-Review</id><content type="html" xml:base="http://lsdsecdaemon.com/krack-review">&lt;p&gt;Salut tout le monde&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-02-15T14:55:59+01:00</updated><id>http://localhost:4000/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">Le Wifi, comment ça marche 2/2</title><link href="http://localhost:4000/wifi-connection-2" rel="alternate" type="text/html" title="Le Wifi, comment ça marche 2/2" /><published>2018-02-14T19:00:00+01:00</published><updated>2018-02-14T19:00:00+01:00</updated><id>http://localhost:4000/Wifi-comment-ca-marche2</id><content type="html" xml:base="http://localhost:4000/wifi-connection-2">&lt;p&gt;Dans la &lt;a href=&quot;http://lsdsecdaemon.com/wifi-connection&quot; target=&quot;_blank&quot;&gt;première partie&lt;/a&gt;, on va vu comment fonctionnait les probes, et l’authentification, mais il reste encore deux ou trois trucs à comprendre avant de pouvoir surfer tranquillement sur google.&lt;br /&gt;
+LET’S GO !&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3 id=&quot;association&quot;&gt;Association&lt;/h3&gt;
+
+&lt;p&gt;Admettons que tout ce soit bien passé jusqu’à maintenant. Il reste encore une étape obligatoire afin que mon laptop puisse enfin se connecter au reste du réseau, c’est l’association. Jusqu’à maintenant, nous avions découvert les AP via les &lt;em&gt;probes&lt;/em&gt;, puis nous avons validé qu’on pouvait s’y connecter avec l’authentification. Du coup, il ne rest plus qu’à finaliser la connexion, via un échange de requête/réponse du type Association.&lt;br /&gt;
+La première question qui m’est venue en tête en lisant les docs a été “Pourquoi faire ?!”. Je veux dire, l’AP et la station sont potes maintenant, ils se sont dit des formalités, se sont serrés la pince et tout, donc où est l’intéret ?&lt;br /&gt;
+Et bien en fait, tout simplement pour échanger des informations supplémentaires. Dans ces infos, on retrouve par exemple le SSID du wifi, le BSS (Basic Service Set), etc. Il sert également à transmettre l’AID (Association ID) qui est l’équivalent d’une prise réseau dans une architecture câblé (une borne, ça ne sera jamais qu’un switch, donc elle a besoin d’une “prise” sur laquelle le client se branchera).&lt;br /&gt;
+Bon maintenant, vous êtes habitués aux trames, donc on va pas y aller par quatres chemins. Le &lt;em&gt;supplicant&lt;/em&gt; envoie le premier message, et l’AP la réponse associée :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_request.png&quot; alt=&quot;Association request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_request_wireshark.png&quot; alt=&quot;Association request wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Les paramètres importants de la requête d’association envoyée par la station sont :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; positionné à 0x0000&lt;/li&gt;
+  &lt;li&gt;Les &lt;strong&gt;&lt;em&gt;capabilities&lt;/em&gt;&lt;/strong&gt;, définissant les capacités demandées par l’AP lors du &lt;em&gt;probe response&lt;/em&gt; et utilisables par la station. Enfin je crois.&lt;/li&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Listen Interval&lt;/em&gt;&lt;/strong&gt;, qui donne à quelle intervalle de temps le supplicant écoutera les frames de type Beacons, si le Power Save Mode est activé&lt;/li&gt;
+  &lt;li&gt;Une foultitude de paramèters taggués, dépendants d’options diverses et variées&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_response.png&quot; alt=&quot;Association response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_response_wireshark.png&quot; alt=&quot;Association response wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Sur le même principe, la réponse émise par l’AP sont :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; mis à 0x0001&lt;/li&gt;
+  &lt;li&gt;Les &lt;strong&gt;&lt;em&gt;capabilities&lt;/em&gt;&lt;/strong&gt;, qui valide ce qui a été envoyé par le client.&lt;/li&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Status Code&lt;/em&gt;&lt;/strong&gt;, mis à 0x0000 si l’association s’est déroulée correctement et que les &lt;em&gt;capabilities&lt;/em&gt; sont correctes&lt;/li&gt;
+  &lt;li&gt;L’&lt;strong&gt;&lt;em&gt;Association ID&lt;/em&gt;&lt;/strong&gt;, qui est bahhhh… un ID quoi ^^&lt;/li&gt;
+  &lt;li&gt;Et encore une fois plusieurs paramètres optionnels&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Je ne détaille pas les différentes capabilities, ni les paramètres taggués, déjà parce que je voulais faire un article, pas réécrire toute la doc, et ensuite parce que ça fait intervenir des notions dont je n’ai pas parlé, et qui ne font pas partie du process de connexion.&lt;/p&gt;
+
+&lt;p&gt;Bref, une fois que la réponse a été reçue par la machine, on peut considérer que CA Y EST ! ENFIN, on est connecté au wifi !&lt;/p&gt;
+
+&lt;h3 id=&quot;wpa-et-wpa2&quot;&gt;WPA et WPA2&lt;/h3&gt;
+
+&lt;p&gt;Ca y est ? On est connecté ? Vraiment ? Well… Pas tout à fait en fait :D&lt;br /&gt;
+Et oui, souviens toi lecteur, jusqu’à présent, on se connectait sur des réseaux “&lt;em&gt;Open&lt;/em&gt;” ou “&lt;em&gt;Shared Key&lt;/em&gt;”. Mais je n’ai pas encore parlé ici de l’authentification via TKIP ou CCMP !
+Donc, pour des réseaux hotspot ou WEP, on s’arrête ici.&lt;br /&gt;
+Par contre, pour les réseaux WPA/WPA2, il reste une étape obligatoire : l’authentification 802.1X (à ne pas confondre avec le 802.11, attention). Bah oui, puisqu’il a fallu rendre le tout un minimum interopérable, on a du rajouter une (dernière) couche après l’association pour ces deux chiffrements.&lt;/p&gt;
+
+&lt;p&gt;Concrètement, le 802.1X est une norme, qui utilise le protocole EAP (pour Extensible Authentication Protol). Globalement, un poste (en câblé ou non) voulant accéder au réseau doit pouvoir prouver sa bonne foi. L’équipement directement connecté -un switch sur du câblé ou l’AP pour du wifi- à ce poste bloque tout accès au réseau (il “ferme” le port) tant que l’identité n’est pas validée. Une fois que le poste est validé, il “ouvre” le port afin que la station puisse discuter avec le réseau. Pour prouver son identité, c’est assez libre, on peut utiliser l’adresse MAC, un identifiant AD, ou encore… une clé wifi :)&lt;/p&gt;
+
+&lt;p&gt;Comme j’ai déjà expliqué en grande partie cette authentification dans mon article sur KRACK, je ne vais pas m’embéter à tout réécrire ici, et &lt;a href=&quot;/krack-review&quot; target=&quot;_blank&quot;&gt;je vous laisse aller le lire&lt;/a&gt; :) Attention cependant, je suis resté assez spécifique au 802.1X wifi. Comme c’est une norme de plus en plus utilisée, il y a pas mal de lecture sur les internets pour du 802.1X cablé, donc je vous laisse le loisir de chercher ^^&lt;/p&gt;
+
+&lt;h3 id=&quot;le-détail-du-format&quot;&gt;Le détail du format&lt;/h3&gt;
+
+&lt;p&gt;Depuis tout à l’heure, j’explique le fonctionnement du 802.11 d’une manière assez statique, c’est à dire que pour chaque type de paquet, j’ai détaillé ce qu’on y trouvait.&lt;br /&gt;
+En fait, ce protocole est très modulaire (et surtout très casse bonbons). J’ai fait pas mal de réseau au niveau pro, et je pense que c’est un des protos les plus tordus que j’ai pu voir jusqu’à maintenant, du fait de sa modularité, ainsi que des différentes specs rajoutées au fil du temps.&lt;br /&gt;
+Bon, du coup, l’idée, c’est de comprendre le fonctionnement générique de ce protocole, et non pas juste de voir quelques paquets en dur comme on a fait jusqu’à présent.&lt;br /&gt;
+Quand je dis comprendre, c’est en partie car il serait trop long de tout expliquer. En fait, chaque champ va en fait définir un subset de champs, et pareil pour chaque paramètre du subset, ce qui peut créer une ramification assez… tordue ! Disons le autrement : c’est le bordel. Je répète : LE BORDEL.&lt;/p&gt;
+
+&lt;p&gt;Gentle reminder : ici, on lit les octets en &lt;em&gt;little endian&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_frame_control.png&quot; alt=&quot;Frame Control&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;L’idée principale, c’est que CHAQUE paquet envoyé en wifi contient un en-tête 802.11. Pour que tout fonctionne correctement, il doit être normé. Ainsi, la première partie de la frame s’appelle le MAC header, et on retrouvera toujours en première position un champ Frame Control, codé sur deux octets. Ce champ est EXTREMEMENT important, puisque c’est lui qui définir les champs suivants.
+Il se divise en 3 parties :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/frame_control1.png&quot; alt=&quot;Frame Control byte 1&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Les bits 6 et 7 correspondent à la version du protocole. La doc 802.11 définit que la version est actuellement 0. Donc, hormis un bug/attaque/autre, ces bits ne changent pas et seront à 00&lt;/li&gt;
+  &lt;li&gt;Les bits 4 et 5 correspondent au type de paquet. Il en existe 4 :
+    &lt;ul&gt;
+      &lt;li&gt;Management (bits 00) : Ils permettent d’envoyer des “commandes” entre la station et l’AP. Typiquement les probes, les authentications et les associations sont de type management&lt;/li&gt;
+      &lt;li&gt;Control (bits 01) : Ils servent à contrôler que tout se passe bien. On trouve les &lt;em&gt;ACKnowledgement&lt;/em&gt;, mais aussi d’autres (comme les RTS, qui servent à demander la parole sur le réseau)&lt;/li&gt;
+      &lt;li&gt;Data (bits 10) : Ils contiennent les données des couches supérieures du modèle OSI (ARP, IP, TCP, HTTP, etc) et seront donc envoyées à la stack réseau&lt;/li&gt;
+      &lt;li&gt;Extension (bits 11) : Ils sont utilisé pour étendre les fonctionnalités, mais on va pas s’embéter avec ça.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Les bits 0 à 3 correspondent au sous-type de paquet. Je ne vais pas tous les lister parce qu’il en existe beaucoup, mais on trouve par exemple :
+    &lt;ul&gt;
+      &lt;li&gt;Association Request (bits 0000)&lt;/li&gt;
+      &lt;li&gt;Association Response (bits 0001)&lt;/li&gt;
+      &lt;li&gt;Authentication (bits 1011)&lt;/li&gt;
+      &lt;li&gt;Request To Send (RTS) (bits 1011)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On remarque au passage qu’un sous type RTS et Authentication ont les mêmes bits. C’est normal : puisque le type (les bits 4 et 5) est différent, ils ne se marchent pas sur les pieds :)&lt;br /&gt;
+Ainsi, si je veux envoyer une requête d’authentification, mon Frame Control correspondra à :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Version 0 : bits 00&lt;/li&gt;
+  &lt;li&gt;Type Management : bits 00&lt;/li&gt;
+  &lt;li&gt;Sous type Authentication : bits 1011&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On aura ainsi un octet 1011 00 00, soit 0x0b.&lt;/p&gt;
+
+&lt;p&gt;A l’inverse, pour un paquet RTS, le Frame Control sera :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Version 0 : bits 00&lt;/li&gt;
+  &lt;li&gt;Type Management : bits 01&lt;/li&gt;
+  &lt;li&gt;Sous type Authentication : bits 1011&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ce qui nous donne 1011 01 00, soit 0xb4.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/frame_control2.png&quot; alt=&quot;Frame Control byte 2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Le deuxième octet du Frame Control est dépendant du premier. Si le type est de 1 et le sous type de 6, on est dans une frame Control/Extension, et les paramètres seront donc spécifiques à l’extension. On va pas trop y toucher dans cet article (ni dans aucun autre d’ailleurs :) ), parce que c’est déjà assez bordélique au niveau du fonctionnement basique.&lt;br /&gt;
+Pour tous les autres types/sous types, on retrouvera une liste fixe de paramètres :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;To DS (Distribution System) : avec le champ suivant, cela permet en gros de savoir si une machine veut discuter sur le réseau avec une autre machine, ou si c’est de la communication entre l’AP et la station. &lt;a href=&quot;https://dalewifisec.wordpress.com/2014/05/17/the-to-ds-and-from-ds-fields/&quot; target=&quot;_blank&quot;&gt;Plus de détails ici.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;From DS : bah du coup, faut lire l’explication du champ précédent :)&lt;/li&gt;
+  &lt;li&gt;More Fragment : mis à 1 s’il reste d’autres paquets pour un message donné (c’est la fragmentation réseau : un paquet à une taille définie et si le message a envoyer est plus long, on le coupe en plusieurs paquets)&lt;/li&gt;
+  &lt;li&gt;Retry : mis à 1 si le paquet a été ré-émis une seconde fois par la source (donc si celle ci n’a pas reçu de ACK)&lt;/li&gt;
+  &lt;li&gt;Power Management : pour tout ce qui est gestion de la batterie des machines. Le wifi étant utilisé pour des postes nomades, un gestion de l’énergie a été mise en place dans les specs&lt;/li&gt;
+  &lt;li&gt;More Data : ce bit est également utilisé pour la gestion d’énergie et indique que des données sont sur l’AP, en attente d’envoi vers le &lt;em&gt;supplicant&lt;/em&gt;.&lt;/li&gt;
+  &lt;li&gt;Protected Frame : assez explicite :) Ce champ est mis à 1 quand le payload du paquet est chiffré via WEP/WPA/WPA2. On le retrouve dans dans les frames datas par exemple&lt;/li&gt;
+  &lt;li&gt;+HTC/Order : c’est un champ un peu bâtard. On met le +HTC (High Throughput Control) à 1 dans les frames de type Control Wrapper. Ce type de frame a surement une utilité. Mais je sais pas laquelle. Lorsque le paquet n’est pas un Control Wrapper, il sert à ordonnancer les frames QoS.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On voit donc que ces deux premiers octets vont définir le comportement global de la frame. Maintenant, attelons nous aux autres champs. Comme dit plus haut, je ne vais pas TOUT détailler, puisqu’il existe beaucoup de combinaisons possibles, en fonction du type/sous type.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_duration_id.png&quot; alt=&quot;Duration-id&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt; 
+Ensuite, toujours dans le MAC header, on trouve le champ Duration/ID, d’une taille de 2 octets. Ce champ est fonction du type/sous type, et peut avoir quatre types de valeurs possibles. Je résume rapidement parce que la définition complète de ce champ fait 4 pages dans la doc (oui oui. Quatre), mais en gros, il correspond soit à l’Association ID (dont j’ai parlé plus haut), soit à une durée pour envoyer un ACK, soit à une valeur fixe de 32768.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_addresses.png&quot; alt=&quot;Addresses&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Suite à ce Duration/ID, viennent les champs Addresses. Généralement, dans un paquet, on trouve un tuple de deux adresses (MAC source et dest, IP source et dest, etc). Là non. On peut en avoir entre une et quatre.
+Pourquoi jusqu’à quatre adresses ? Et bien en fait, c’est logique :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;la Receiving Address (RA) :  l’adresse MAC de la machine qui recoit le paquet&lt;/li&gt;
+  &lt;li&gt;la Transmitting Address (TA) : l’adresse MAC de la machine qui transmet le paquet.&lt;/li&gt;
+  &lt;li&gt;la Source Address (SA) : l’adresse MAC de la machine source&lt;/li&gt;
+  &lt;li&gt;la Destination Address (DA) : l’adresse MAC de la machine qu’on cherche à joindre (un autre poste du LAN ou la &lt;em&gt;gateway&lt;/em&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ici quelques explications s’imposent : Dans un réseau Wifi, il n’y a pas forcément qu’une seule borne. Il est fréquent que plusieurs bornes utilisent le même réseau wifi. Ainsi, si ma bécane veut discuter avec google, elle va envoyer un paquet à la borne sur laquelle elle est connectée avec sa propre MAC comme SA et la &lt;em&gt;gateway&lt;/em&gt; comme DA (bah oui, on discute avec la GW, pas avec google directement). Le champ TA sera également celui de mon laptop, et le champ RA sera la MAC de la borne wifi. Si cette borne est juste un relais, elle va donc devoir envoyer ce paquet à une seconde borne. A ce moment, elle va changer les champs TA et RA. TA deviendra donc l’addresse de la première borne et SA celle de la seconde borne. Cette deuxième AP va ensuite envoyer le paquet à la gateway. Lorsque la réponse arrivera, le chemin inverse sera effectué. Cela dit, un beau schéma, c’est toujours mieux :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/addresses.png&quot; alt=&quot;Addresses explanation&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Comme toujours les champs addresses correspondent aux types et sous type. Par exemple, les frames de controle n’ont pas besoin des 4, puisque l’AP communique directement avec mon PC.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_bssid.png&quot; alt=&quot;BSS ID&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;On peut dans certaines trames également trouver le champ &lt;em&gt;BSS ID&lt;/em&gt; qui correspond à la MAC de l’AP.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_seq_control.png&quot; alt=&quot;Sequence Control&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ce champ se divise en deux parties : une première de 4 bits qui indique le numéro de fragmentation, et une seconde de 12 bits qui est le numéro de séquence. Qui est… bah un numéro quoi. qui s’incrémente et tout.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_body.png&quot; alt=&quot;Frame Body&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ENFIN ! ON arrive au &lt;em&gt;Frame Body&lt;/em&gt; (c’est pas trop tôt, l’article est commencé depuis 3 mois).
+Le &lt;em&gt;Frame Body&lt;/em&gt; a toujours une taille variable. Tout simplement parce qu’il est inhérent à chaque paquet.&lt;/p&gt;
+
+&lt;p&gt;Pour les frames de types données, c’est plutôt simple :  on envoie la sauce, avec toutes les couches OSI supérieures (mais si lecteur, tu sais bien, le truc qu’on appelle IP par exemple). Là, il n’y a pas à débattre, tout ce qui est envoyé ici n’a aucun rapport avec le 802.11. La taille peut aller de 0 à 2304 octets. Si on a un message plus gros à faire passer, on doit mettre le bit More Fragments à 1. Une fois que le paquet est reçu, la stack réseau prend le relais et envoie le paquet au niveau applicatif.&lt;/p&gt;
+
+&lt;p&gt;Ensuite, les frames de type management et controle : vous connaissez le refrain maintenant : “Ca dépend du type et du sous type”. On ne change pas une équipe qui gagne.&lt;br /&gt;
+EN fait, des exemples, j’en ai déjà donné plusieurs tout au long de l’article : les probes, les authentications, les associations, etc. Ici la taille est en fonction des paramètres envoyés. Elle peut avoir une taille qui va de 0 (pour les types ACK par exemple) à 2304. Cela dit, on a rarement 2304 octets des paramètres à envoyer d’un coup ! ^^&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_fcs.png&quot; alt=&quot;Frame Check Sequence&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Après le &lt;em&gt;Frame Body&lt;/em&gt;, on trouve le truc le plus simple du proto : le Fram Check Sequence (FCS). C’est toujours un champ de 4 octets, qui contient un CRC32 du MAC header et du &lt;em&gt;Frame Body&lt;/em&gt;. Les plus malins auront compris qu’il sert à vérifier l’intégrité du paquet :) Si le CRC32 est bon, le paquet est accepté et transmis vers la destination. Dans ce cas, un ACK est envoyé à la source pour dire “wesh gros, j’ai fait passer ton petit mot”. Si le FCS est faux, c’est qu’il y a eu erreur. A ce moment, l’AP ne prévient même pas qu’il y a eu un souci. Du coup, mon PC attend un certain moment, puis renvoie le paquet avec le champ Retry à 1.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Pfiouuu, c’était compliqué. 3500 pages à se taper (bon pas tout quand même, j’ai fait pas mal de Ctrl + F), des recherches dans les tréfonds des internets du web, un article de plus de 30000 caractères, mais bon, au moins, je sais ce qui se passe le matin, quand mon laptop boote et que je bois mon café :)&lt;br /&gt;
+En tout cas, même si j’ai galeré, j’ai beaucoup appris techniquement, c’est un très bon exercice à faire, et j’espère que vous aurez aussi appris 2 ou 3 choses !&lt;/p&gt;
+
+&lt;p&gt;Oh, et du coup, suite à KRACK, la Wi Fi Alliance a décidé de faire bouger les choses avec la mise en place du WPA3. A cela, deux solutions : soit ils vont updater les specs pour rajouter toujours plus de bazar, soit ils vont créer une nouvelle spec from scratch, et cet article ne sera bientôt plus utile ^^&lt;/p&gt;
+
+&lt;p&gt;Enjoy&lt;/p&gt;
+
+&lt;p&gt;The lsd&lt;/p&gt;
+
+&lt;h3 id=&quot;liens-utiles&quot;&gt;Liens utiles&lt;/h3&gt;
+
+&lt;p&gt;Tous les liens qui m’ont servi à comprendre le 802.11&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://ieeexplore.ieee.org/document/7786995/&quot; target=&quot;_blank&quot;&gt;ieeexplore.ieee.org&lt;/a&gt; : le lien vers la doc officielle, évidemment. Attention par contre, il faut s’inscire&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://mrncciew.com/&quot; target=&quot;_blank&quot;&gt;mrncciew.com&lt;/a&gt; : une bible. C’est pas super beau, un peu brouillon, mais beaucoup d’infos !&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cwnp.com/forums/&quot; target=&quot;_blank&quot;&gt;www.cwnp.com&lt;/a&gt; : un forum dédié au wifi. C’est le site officiel de la certif CWNP, donc il y a des infos de qualité&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://documentation.meraki.com/MR/WiFi_Basics_and_Best_Practices/802.11_Association_process_explained&quot; target=&quot;_blank&quot;&gt;meraki.com&lt;/a&gt; : un résumé high level des étapes de connexion&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cisco.com/c/en/us/support/docs/wireless-mobility/wlan-security/68583-FAQ-Wireless-Security.html&quot; target=&quot;_blank&quot;&gt;cisco.com&lt;/a&gt; : de la doc sur les méthodes de chiffrement&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://supportforums.cisco.com/t5/wireless-mobility-documents/802-11-sniffer-capture-analysis-wpa-wpa2-with-psk-or-eap/ta-p/3116990&quot; target=&quot;_blank&quot;&gt;cisco.com&lt;/a&gt; : quelques explications sur les frames d’authentification&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://community.arubanetworks.com/t5/Technology-Blog/A-closer-look-at-WiFi-Security-IE-Information-Elements/ba-p/198867&quot; target=&quot;_blank&quot;&gt;arubanetworks.com&lt;/a&gt; : des explications un peu plus détaillées que moi sur le RSN et TSN (Transitional Security Network, un truc qui a servi à passer de WEP à WPA2)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://fiddy.free.fr/blog/index.php?post/2008/11/25/Le-WEP-suffisamment-s%C3%A9curis%C3%A9&quot; target=&quot;_blank&quot;&gt;fiddy.free.fr&lt;/a&gt; : explications détaillées en en français sur le chiffrement WEP, et pourquoi c’est tout pété&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/assets/zip/802.11/files_802.11.zip&quot;&gt;Fichiers utiles&lt;/a&gt; : Des pcap épuré pour pouvoir regarder le détail, et un html avec les schémas de la struct&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">Dans la première partie, on va vu comment fonctionnait les probes, et l’authentification, mais il reste encore deux ou trois trucs à comprendre avant de pouvoir surfer tranquillement sur google. LET’S GO !</summary></entry><entry><title type="html">Le Wifi, comment ça marche 1/2</title><link href="http://localhost:4000/wifi-connection" rel="alternate" type="text/html" title="Le Wifi, comment ça marche 1/2" /><published>2018-02-14T19:00:00+01:00</published><updated>2018-02-14T19:00:00+01:00</updated><id>http://localhost:4000/Wifi-comment-ca-marche</id><content type="html" xml:base="http://localhost:4000/wifi-connection">&lt;p&gt;Bon, maintenant qu’on a expliqué &lt;a href=&quot;http://lsdsecdaemon.com/krack-review&quot; target=&quot;_blank&quot;&gt;KRACK dans les détails&lt;/a&gt;, on va gratter un peu la surface et regarder comment fonctionne le mécanisme de connexion dans sa globalité.&lt;br /&gt;
+Lorsqu’on se connecte sur une borne wifi, il se passe en réalité plein de choses &lt;em&gt;under the hood&lt;/em&gt;, dont personne ne se rend compte.&lt;br /&gt;
+Le but de cet article est donc de démystifier un peu le fonctionnement d’une connexion classique à un AP, ce qui va permettre de préparer le terrain pour le post suivant, qui expliquera comment faire des bidouilles sympas (par exemple du jamming).&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3 id=&quot;généralités&quot;&gt;Généralités&lt;/h3&gt;
+
+&lt;p&gt;Avant de commencer, je pose quelques détails généraux, histoire qu’on parte sur de bonnes bases :)&lt;/p&gt;
+
+&lt;p&gt;Une chose importante à prendre en compte, c’est qu’on est sur du réseau wifi. Qui dit wifi dit ondes. Et qui dit ondes dit (forcément) écoute via le mode monitor des cartes wifi. Pour expliquer un peu , il existe 4 modes au niveau wifi :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;le mode &lt;strong&gt;classique&lt;/strong&gt;, que tout le monde utilise. J’utilise le mot classique par défaut, je ne sais pas s’il y a un mot plus exact&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;promiscuous&lt;/em&gt;&lt;/strong&gt; (qui existe également au niveau cablé). Ce mode permet de récupérer tous les paquets qui ne nous sont pas adressés directement (qui n’ont pas comme adresse de destination notre MAC techniquement). Ce mode s’utilise lorsqu’on est déjà connecté à un réseau wifi&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;monitor&lt;/em&gt;&lt;/strong&gt; (pour le coup, il n’y a pas d’équivalent cablé) qui nous donne la possibilité de récupérer littérallement TOUS les paquets. C’est grâce à ce mode qu’on va pouvoir faire des trucs cools (au hasard péter des clés wifi)&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;injection&lt;/em&gt;&lt;/strong&gt;, qui permet d’aller encore plus loin que le monitor. Avec ce mode, on peut envoyer des paquets alors même qu’aucun réseau wifi n’est connecté avec la carte. En gros, on peut envoyer tout et n’importe quoi. Là aussi, c’est plutôt cool pour certaines attaques.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Dans cet article, les paquets que je montre  sont des versions “figées”, c’est à dire spécifiques à chaque type de trame. Les termes mis en gras dans les images des trames sont les plus importants et donc ceux que j’explique. J’ai mis également des screenshots wireshark pour la gloire, histoire de voir concrètement la gueule des paquets.&lt;br /&gt;
+J’explique en fin de post le fonctionnement générique des trames 802.11. J’dis ça, j’dis rien, mais pour comprendre le réseau, vaut mieux aller lire les détails :)&lt;/p&gt;
+
+&lt;p&gt;Les puristes du réseau pourront me rétorquer qu’il existe des différences entre une trame et un paquet. Ma réponse est simple : osef. D’une part parce qu’on arrive très bien à comprendre l’idée générale, et d’autre part pour éviter des répétitions dans tous les sens.&lt;/p&gt;
+
+&lt;p&gt;Oh, et n’oublions pas aussi que la doc fait quand même TROIS MILLES CINQ CENT PAGES. Il est donc possible que je me sois planté à certains endroits, dans ce cas, il ne faut pas hésiter à me corriger :)&lt;/p&gt;
+
+&lt;h3 id=&quot;découverte&quot;&gt;Découverte&lt;/h3&gt;
+
+&lt;p&gt;9h du matin : j’allume mon laptop, la séquence de boot passe tranquillement pendant que je bois mon café, et quand je reviens devant mon PC, mon network manager me propose une liste de wifi sur lequel me connecter. OK c’est cool, je choisis mon réseau, la connexion se fait, et je commence ma journée de boulot.&lt;br /&gt;
+Mais du coup… il s’est passé quoi exactement ?&lt;/p&gt;
+
+&lt;p&gt;Et bien dans un premier temps, mon laptop a envoyé un gros paquet des familles, qui dit plus ou moins :&lt;/p&gt;
+
+&lt;p&gt;“HEY HO ! ON SE REVEILLE LES ACCESS POINT ! MOI DE MON COTÉ, JE PEUX COMPRENDRE SI VOUS ME PARLEZ FRANCAIS OU ANGLAIS”.&lt;/p&gt;
+
+&lt;p&gt;Ce paquet, c’est ce qu’on appelle un &lt;strong&gt;&lt;em&gt;Probe Request&lt;/em&gt;&lt;/strong&gt;.&lt;br /&gt;
+Pour expliquer plus sérieusement, mon portable a fait une requête en &lt;em&gt;broadcast&lt;/em&gt; (donc à destination de tout le monde) afin d’annoncer à tous les réseaux alentours qu’il a besoin de se connecter à un wifi, et qu’il peut utiliser certains paramètres (au hasard, la version A/B/G/N, mais également d’autres).&lt;br /&gt;
+Evidemment, les paquets de ce genre sont normés, grâce au standard 802.11, et ressemblent techniquement à cela :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_request.png&quot; alt=&quot;Probe Reponse&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_request_wireshark.png&quot; alt=&quot;Probe Reponse Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Je ne vais pas expliquer tous les champs, mais pour faire simple, on a ici 4 informations importantes (il y en a d’autres évidemment) :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; : une valeur de 0x0004 correspond à un paquet de type probe request.&lt;/li&gt;
+  &lt;li&gt;la &lt;strong&gt;&lt;em&gt;Destination Address&lt;/em&gt;&lt;/strong&gt; : l’adresse MAC de la borne wifi à qui le paquet est envoyé. Je disais plus haut que les &lt;em&gt;probes requests&lt;/em&gt; envoyaient en broadcast, mais il est aussi possible d’envoyer en &lt;em&gt;unicast&lt;/em&gt; (vers une seule machine), ici 00:0E:9E:51:AC:11. Ca permet de moins congestionner le réseau.&lt;/li&gt;
+  &lt;li&gt;la &lt;strong&gt;&lt;em&gt;Source Address&lt;/em&gt;&lt;/strong&gt; : l’adresse MAC de mon portable, afin que les AP puissent me répondre.&lt;/li&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Frame Body&lt;/em&gt;&lt;/strong&gt; : alors là, c’est un peu le bordel, parce que les normes wifi ont évolué au fil du temps. Du coup, les paramètres renseignés dans le &lt;em&gt;Frame Body&lt;/em&gt; sont carrément variables. Dans la version 2016 de la norme 802.11, on trouve jusqu’à 20 champs (tableau 9.33, page 706). Chaque champ se compose de 3 parties : un ID, la taille du champ, et sa valeur. Ils permettent de définir les capacités du &lt;em&gt;supplicant&lt;/em&gt; (le client Wifi), afin que l’AP sache s’il pourra répondre ou non. On retrouve comme informations, les channels utilisables, les taux de transfert, et en fonction de pas mal de paramètres, d’autres informations.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Pour information, tout ce qui précède le &lt;em&gt;Frame Body&lt;/em&gt; est appelé le &lt;strong&gt;&lt;em&gt;MAC Header&lt;/em&gt;&lt;/strong&gt;. On n’en reparlera pas, mais sachez le :)&lt;br /&gt;
+De plus, le &lt;em&gt;Frame Body&lt;/em&gt; est différent selon les paquets. Ici, on a uniquement des paramètres taggués. Comme on ne peut pas savoir à l’avance quels paramètres seront présents, on est obligé d’utiliser un principe de tags pour chaque champ (d’où l’utilisation d’ID). Le Frame Body étant spécifique selon les paquets, cela ne sera pas toujours le cas. On pourra trouver des paramètres fixes (donc pas besoin d’ID). Don’t worry, j’explique tout bien komilfo à la fin.&lt;/p&gt;
+
+&lt;p&gt;Bref. Une fois que cette étape est passée, les AP qui sont à portée vont répondre à ma machine deux choses :&lt;br /&gt;
+La première, c’est :&lt;/p&gt;
+
+&lt;p&gt;“Ok  mec, pas la peine de crier, je t’ai entendu.”&lt;/p&gt;
+
+&lt;p&gt;C’est l’&lt;strong&gt;&lt;em&gt;ACK&lt;/em&gt;&lt;/strong&gt; (&lt;em&gt;ACKnowledgment&lt;/em&gt;) que l’AP envoie au &lt;em&gt;supplicant&lt;/em&gt;, juste pour valider que le message a bien été reçu.&lt;br /&gt;
+C’est un paquet très court, qui ne contient quasiment rien. Il est tellement court, qu’il ne contient même pas l’adresse MAC de la source ! Après quelques recherches, on explique &lt;a href=&quot;https://stackoverflow.com/questions/37040303/why-do-802-11-acknowledgement-frames-have-no-source-mac&quot; target=&quot;_blank&quot;&gt;ici&lt;/a&gt;, &lt;a href=&quot;http://cnp3book.info.ucl.ac.be/2nd/html/protocols/wifi.html&quot; target=&quot;_blank&quot;&gt;là&lt;/a&gt; et dans le §9.2.8 de la doc que c’est normal qu’il n’y ait pas de source parce que l’AP ne peut répondre qu’à une seule machine pendant un court laps de temps, grâce à un &lt;em&gt;timer&lt;/em&gt;. Du coup, on sait forcément à qui s’adresse le ACK et ça fait un paquet plus court à envoyer.&lt;br /&gt;
+Voilà à quoi ressemble un &lt;em&gt;ACK&lt;/em&gt; :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/ack.png&quot; alt=&quot;ACK packet&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/ack_wireshark.png&quot; alt=&quot;ACK packet Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Au niveau des infos, c’est plus simple, vu que le but du jeu, c’est juste que l’AP dise que le message est bien arrivé. Dans les champs utiles, on a simplement :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;un &lt;em&gt;Frame Control&lt;/em&gt; qui correspond à 0x00D4,&lt;/li&gt;
+  &lt;li&gt;l’adresse de destination, qui est donc l’adresse source du &lt;em&gt;probe request&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ce message apparait quasiment après chaque paquet reçu, je n’en parlerai plus à partir de maintenant, mais il faut garder en tête qu’il est (presque) toujours présent.&lt;/p&gt;
+
+&lt;p&gt;La deuxième chose, c’est ça :&lt;/p&gt;
+
+&lt;p&gt;“Toi et moi, c’est un match, tiens voilà mes infos si tu veux qu’on discute ensemble”.&lt;/p&gt;
+
+&lt;p&gt;C’est le &lt;strong&gt;&lt;em&gt;Probe Response&lt;/em&gt;&lt;/strong&gt;. Techniquement, il contient, comme pour la requête, plusieurs informations utiles au client (nom du constructeur, SSID, channel, etc) et ressemble beaucoup au Probe Request :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_response.png&quot; alt=&quot;Probe Response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_response_wireshark.png&quot; alt=&quot;Probe Response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Dans la liste des champs intéressants, on retrouve les mêmes choses que pour le probe request (&lt;em&gt;Frame Control&lt;/em&gt;, Destination, Source, &lt;em&gt;Body&lt;/em&gt;).&lt;br /&gt;
+Evidemment, les MAC source et destination sont inversées, et le &lt;em&gt;Frame Body&lt;/em&gt; est différent. Celui-ci, encore une fois très important, donne des informations, comme le type de chiffrement utilisé (j’en reparle un peu plus loin), qui permettent à mon PC de savoir s’il est en capacité de se connecter à cet AP.&lt;/p&gt;
+
+&lt;p&gt;Bon, maintenant que les réponses des bornes ont été récupérées par ma machine, elle décide quel est le meilleur réseau auquel se connecter, en fonction de plusieurs paramètres, du genre la puissance du signal, le réseau préféré, ou encore le débit proposé. Libre à l’OS de choisir ce qu’il veut. Le mien, par exemple, a une fâcheuse tendance à choisir le réseau le plus pourri.
+Une fois que le choix est fait, on va passer à la phase suivante : l’authentification.&lt;/p&gt;
+
+&lt;h3 id=&quot;authentification&quot;&gt;Authentification&lt;/h3&gt;
+
+&lt;p&gt;On a découvert les réseaux à proximité, on va donc pouvoir s’attaquer à la deuxième étape : l’authentification.&lt;br /&gt;
+Une fois que le &lt;em&gt;supplicant&lt;/em&gt;  a choisi son AP, il va devoir lui dire qu’il veut se connecter. Et alors là… C’est le bordel. Grave.&lt;/p&gt;
+
+&lt;p&gt;Pour s’authentifier, le client va donc envoyer une première requête. Cette requête va contenir un élément important : le type d’authentification. Soit &lt;strong&gt;&lt;em&gt;Open&lt;/em&gt;&lt;/strong&gt;, soit &lt;strong&gt;&lt;em&gt;Shared Key&lt;/em&gt;&lt;/strong&gt;. Bêtement, on pourrait penser que &lt;em&gt;Open&lt;/em&gt; correspond aux réseaux ouverts (wifi mcdo ou autres), et que &lt;em&gt;Shared Key&lt;/em&gt; correspondrait aux wifi authentifié (WEP et WPA/WPA2). MAIS NON.&lt;br /&gt;
+La blague dans l’histoire, c’est que :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;Shared Key&lt;/em&gt; correspond à du chiffrement WEP,et uniquement à du WEP (§12.3.3.3.1 de la doc 802.11)&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;Open&lt;/em&gt; correspond à un wifi ouvert… ou alors à du chiffrement via WPA/WPA2. Les maux de têtes commencent à arriver ? Ce n’est que le début.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;C’est débile, oui, mais pourquoi ? En fait, à la mise en place de la norme 802.11, les créateurs n’ont prévu à la base que de wifi non chiffré, ou chiffré en WEP. Du coup, il faut prendre en compte que tout ce qui n’est pas WEP, est &lt;em&gt;Open&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Maintenant, comment mon ordinateur sait que l’AP m’a proposé du non chiffré, du WEP, du WPA, ou du WPA2 ?&lt;br /&gt;
+A la base, c’était simple. Le &lt;em&gt;Probe Response&lt;/em&gt; contenait un champ &lt;strong&gt;&lt;em&gt;Privacy&lt;/em&gt;&lt;/strong&gt; (un bit mis à 1) qui définissait ou non l’utilisation du WEP. Et puis, ce fut le drame.&lt;br /&gt;
+Lorsque l’IEEE s’est rendu compte que WEP était pété, il ont sorti un truc à l’arrache, histoire colmater un peu : le WPA. Ce WPA utilise un chiffrement de type TKIP.&lt;br /&gt;
+SAUF QUE, comme il a été fait un peu à la wanagain bistoufly, les mecs se sont dit qu’ils allaient préparer un truc plus propre pour la suite : WPA2, qui utilise du CCMP.&lt;br /&gt;
+SAUF QUE, histoire que tout soit bien retrocompatible, quand ils ont fait l’amendement 802.11i (qui officialise WPA/WPA2), les bonhommes ont décidé que WPA devrait AUSSI supporter CCMP, et que WPA2 devrait AUSSI supporter TKIP.&lt;br /&gt;
+SAUF QUE, encore une fois, histoire de compatibilité, il a fallu faire des bidouilles &lt;em&gt;from space&lt;/em&gt;. Donc, pour WPA, il a fallu utiliser un paramètre optionnel spécifique (le tag 221) qui liste les chiffrements disponibles en WPA. Pour WPA2, ils ont créé un autre paramètre : le RSN (Robust Security Network).
+(Evidemment, trouver ça dans 3500 pages de doc… bisou.)&lt;/p&gt;
+
+&lt;p&gt;Donc, pour résumer le fonctionnement, dans le &lt;em&gt;Probe Response&lt;/em&gt;, ça se passe comme ça :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Mode &lt;em&gt;Shared&lt;/em&gt; : WEP&lt;/li&gt;
+  &lt;li&gt;Mode &lt;em&gt;Open&lt;/em&gt; :
+    &lt;ul&gt;
+      &lt;li&gt;tag RSN :
+        &lt;ul&gt;
+          &lt;li&gt;CCMP et/ou TKIP (mode WPA2)&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;tag optionnel 221 :
+        &lt;ul&gt;
+          &lt;li&gt;CCMP et/ou TKIP (mode WPA)&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;aucun tag :
+        &lt;ul&gt;
+          &lt;li&gt;wifi non chiffré&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;En fonction de ces informations, ma bécane saura ainsi lors de cette première requête de la phase d’authentification s’il faut envoyer une demande &lt;em&gt;Shared&lt;/em&gt; ou &lt;em&gt;Open&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;On va commencer par étudier le type &lt;em&gt;Open&lt;/em&gt;, c’est le plus simple :)&lt;br /&gt;
+La requête qu’envoie mon PC, c’est littéralement :&lt;/p&gt;
+
+&lt;p&gt;“Hey, psst, hey ! Tu me laisses rentrer s’il te plait ?”&lt;/p&gt;
+
+&lt;p&gt;Comme d’hab, je met le petit schéma de la requête. Pour le coup, j’ai détaillé le &lt;em&gt;Frame Body&lt;/em&gt; parce qu’il est important de comprendre ce qu’il contient.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg1.png&quot; alt=&quot;Open Authentication request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg1_wireshark.png&quot; alt=&quot;Open Authentication request Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Tout se joue donc au niveau du &lt;em&gt;Frame Body&lt;/em&gt;. En mode &lt;em&gt;Open&lt;/em&gt;, on trouve trois champs :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;l’&lt;strong&gt;&lt;em&gt;Authentication algorithm&lt;/em&gt;&lt;/strong&gt; : qui correspond à 0x0000&lt;/li&gt;
+  &lt;li&gt;l’&lt;strong&gt;&lt;em&gt;Authentication SEQuence&lt;/em&gt;&lt;/strong&gt; : puisque c’est le premier message de l’authent, il correspond à 0x0001&lt;/li&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Status Code&lt;/em&gt;&lt;/strong&gt; : tout se passe bien, il est à 0x0000&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Une fois que l’AP a reçu ce message d’authentification, il va bien évidemment y répondre. La réponse est quasiment identique à la requête. Dans le &lt;em&gt;Frame Body&lt;/em&gt;, le seul champ différent est l’Authentication SEQuence qui passe à 0x0002. Le reste ne bouge pas, si tout se passe bien :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg2.png&quot; alt=&quot;Open Authentication response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg2_wireshark.png&quot; alt=&quot;Open Authentication response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Une fois que la réponse est envoyée au client (et que l’AP a bien reçu le ACK qui suit), tout est ok, les deux machines sont dans un état authentifié, mais non associé. Je parle de l’association après, mais pour l’instant, étudions un peu l’authentification en mode &lt;em&gt;Shared&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;En mode &lt;em&gt;Shared&lt;/em&gt; (donc WEP), il y a un &lt;strong&gt;&lt;em&gt;4Way handshake&lt;/em&gt;&lt;/strong&gt;, qui permet de valider la clé Wifi, sans qu’elle ne passe en clair sur le réseau (bon, le WEP a été pété malgré ça, mais l’intention était louable :) )&lt;br /&gt;
+Le premier message est, à l’instar du mode &lt;em&gt;Open&lt;/em&gt;, envoyé par le client et est identique, hormis l’&lt;em&gt;Authentication Algorithm&lt;/em&gt;, qui correspond cette fois-ci à 0x0001, pour signifier le mode &lt;em&gt;Shared&lt;/em&gt;. Malheureusement, je n’ai pas d’équipements qui me permette de faire d’authent WEP sous la main, donc j’ai honteusement (ou pas) “emprunté” des images venant de &lt;a href=&quot;https://mrncciew.com/2014/10/10/802-11-mgmt-authentication-frame/&quot; target=&quot;_blank&quot;&gt;mrncciew.com&lt;/a&gt;. On lui dit merci :)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg1.png&quot; alt=&quot;Shared Authentication request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg1_wireshark.png&quot; alt=&quot;Shared Authentication request Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Le second message, envoyé par l’AP, va faire les actions suivantes : incrémenter le numéro de séquence pour le passer à 0x0002, et envoyer un paramètre taggué (id 16), qui correspond à un challenge que ma machine devra utiliser pour valider la clé Wifi. La valeur de ce challenge est une chaine pseudo aléatoire de 128 octets.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg2_wireshark.png&quot; alt=&quot;Shared Authentication challenge Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Un troisième message va être envoyé par le supplicant. Celui ci va contenir principalement :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;l’Initialization Vector (IV), qui permet d’éviter d’avoir deux messages chiffrés identiques pour un même clair&lt;/li&gt;
+  &lt;li&gt;l’Integrity Check Value (ICV), qui est un bête CRC32 du challenge clair&lt;/li&gt;
+  &lt;li&gt;le challenge response, qui est (IV + challenge) chiffré avec la clé WEP.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg3_wireshark.png&quot; alt=&quot;Shared Authentication challenge validation Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Une fois ce message reçu par l’AP, ce dernier va déchiffrer le challenge, vérifier qu’il correspond bien à son ICV, et vérifier qu’il correspond au clair envoyé dans le message 2.&lt;br /&gt;
+Si le challenge et sa réponse sont équivalents, l’AP va donc envoyer un dernier message de validation, les données du &lt;em&gt;Frame Body&lt;/em&gt; seront classiques : l’Authentication Algorithm toujours positionné à &lt;em&gt;Shared Key&lt;/em&gt;, l’Authentication SEQuence à 0x0004, et le Status Code à 0x0000.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg4.png&quot; alt=&quot;Shared Authentication response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg4_wireshark.png&quot; alt=&quot;Shared Authentication response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A l’inverse, s’il y a un souci (mauvaise clé par exemple), le Status Code sera différent de 0x0000 et l’AP considérera que le client n’a pas pu s’authentifier.&lt;br /&gt;
+Ouf, next step !&lt;/p&gt;
+
+&lt;p&gt;Pour la suite, &lt;a href=&quot;/wifi-connection-2&quot;&gt;c’est par ici&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Enjoy&lt;/p&gt;
+
+&lt;p&gt;The lsd&lt;/p&gt;</content><author><name></name></author><summary type="html">Bon, maintenant qu’on a expliqué KRACK dans les détails, on va gratter un peu la surface et regarder comment fonctionne le mécanisme de connexion dans sa globalité. Lorsqu’on se connecte sur une borne wifi, il se passe en réalité plein de choses under the hood, dont personne ne se rend compte. Le but de cet article est donc de démystifier un peu le fonctionnement d’une connexion classique à un AP, ce qui va permettre de préparer le terrain pour le post suivant, qui expliquera comment faire des bidouilles sympas (par exemple du jamming).</summary></entry><entry><title type="html">Connexion Wifi</title><link href="http://localhost:4000/2017/10/29/connexion-wifi.html" rel="alternate" type="text/html" title="Connexion Wifi" /><published>2017-10-29T00:00:00+02:00</published><updated>2017-10-29T00:00:00+02:00</updated><id>http://localhost:4000/2017/10/29/connexion-wifi</id><content type="html" xml:base="http://localhost:4000/2017/10/29/connexion-wifi.html">&lt;hr /&gt;
+&lt;p&gt;layout: post
+title:  “Le Wifi, comment ça marche”
+date:   2017-10-29 20:00:00 +0200
+categories: Network
+permalink: Wifi-connection
+excerpt_separator: &lt;!--more--&gt;&lt;/p&gt;
+
+&lt;p&gt;Bon, maintenant qu’on a expliqué &lt;a href=&quot;http://lsdsecdaemon.com/krack-review&quot; target=&quot;_blank&quot;&gt;KRACK dans les détails&lt;/a&gt;, on va gratter un peu la surface et regarder comment fonctionne le mécanisme de connexion dans sa globalité.&lt;br /&gt;
+Lorsqu’on se connecte sur une borne wifi, il se passe en réalité plein de choses &lt;em&gt;under the hood&lt;/em&gt;, dont personne ne se rend compte.&lt;br /&gt;
+Le but de cet article est donc de démystifier un peu le fonctionnement d’une connexion classique à un AP, ce qui va permettre de préparer le terrain pour le post suivant, qui expliquera comment faire des bidouilles sympas (par exemple du jamming).&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3 id=&quot;généralités&quot;&gt;Généralités&lt;/h3&gt;
+
+&lt;p&gt;Avant de commencer, je pose quelques détails généraux, histoire qu’on parte sur de bonnes bases :)&lt;/p&gt;
+
+&lt;p&gt;Une chose importante à prendre en compte, c’est qu’on est sur du réseau wifi. Qui dit wifi dit ondes. Et qui dit ondes dit (forcément) écoute via le mode monitor des cartes wifi. Pour expliquer un peu , il existe 4 modes au niveau wifi :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;le mode &lt;strong&gt;classique&lt;/strong&gt;, que tout le monde utilise. J’utilise le mot classique par défaut, je ne sais pas s’il y a un mot plus exact&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;promiscuous&lt;/em&gt;&lt;/strong&gt; (qui existe également au niveau cablé). Ce mode permet de récupérer tous les paquets qui ne nous sont pas adressés directement (qui n’ont pas comme adresse de destination notre MAC techniquement). Ce mode s’utilise lorsqu’on est déjà connecté à un réseau wifi&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;monitor&lt;/em&gt;&lt;/strong&gt; (pour le coup, il n’y a pas d’équivalent cablé) qui nous donne la possibilité de récupérer littérallement TOUS les paquets. C’est grâce à ce mode qu’on va pouvoir faire des trucs cools (au hasard péter des clés wifi)&lt;/li&gt;
+  &lt;li&gt;le mode &lt;strong&gt;&lt;em&gt;injection&lt;/em&gt;&lt;/strong&gt;, qui permet d’aller encore plus loin que le monitor. Avec ce mode, on peut envoyer des paquets alors même qu’aucun réseau wifi n’est connecté avec la carte. En gros, on peut envoyer tout et n’importe quoi. Là aussi, c’est plutôt cool pour certaines attaques.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Dans cet article, les paquets que je montre  sont des versions “figées”, c’est à dire spécifiques à chaque type de trame. Les termes mis en gras dans les images des trames sont les plus importants et donc ceux que j’explique. J’ai mis également des screenshots wireshark pour la gloire, histoire de voir concrètement la gueule des paquets.&lt;br /&gt;
+J’explique en fin de post le fonctionnement générique des trames 802.11. J’dis ça, j’dis rien, mais pour comprendre le réseau, vaut mieux aller lire les détails :)&lt;/p&gt;
+
+&lt;p&gt;Les puristes du réseau pourront me rétorquer qu’il existe des différences entre une trame et un paquet. Ma réponse est simple : osef. D’une part parce qu’on arrive très bien à comprendre l’idée générale, et d’autre part pour éviter des répétitions dans tous les sens.&lt;/p&gt;
+
+&lt;p&gt;Oh, et n’oublions pas aussi que la doc fait quand même TROIS MILLES CINQ CENT PAGES. Il est donc possible que je me sois planté à certains endroits, dans ce cas, il ne faut pas hésiter à me coriger :)&lt;/p&gt;
+
+&lt;h3 id=&quot;découverte&quot;&gt;Découverte&lt;/h3&gt;
+
+&lt;p&gt;9h du matin : j’allume mon laptop, la séquence de boot passe tranquillement pendant que je bois mon café, et quand je reviens devant mon PC, mon network manager me propose une liste de wifi sur lequel me connecter. OK c’est cool, je choisis mon réseau, la connexion se fait, et je commence ma journée de boulot.&lt;br /&gt;
+Mais du coup… il s’est passé quoi exactement ?&lt;/p&gt;
+
+&lt;p&gt;Et bien dans un premier temps, mon laptop a envoyé un gros paquet des familles, qui dit plus ou moins :&lt;/p&gt;
+
+&lt;p&gt;“HEY HO ! ON SE REVEILLE LES ACCESS POINT ! MOI DE MON COTÉ, JE PEUX COMPRENDRE SI VOUS ME PARLEZ FRANCAIS OU ANGLAIS”.&lt;/p&gt;
+
+&lt;p&gt;Ce paquet, c’est ce qu’on appelle un &lt;strong&gt;&lt;em&gt;Probe Request&lt;/em&gt;&lt;/strong&gt;.&lt;br /&gt;
+Pour expliquer plus sérieusement, mon portable a fait une requête en &lt;em&gt;broadcast&lt;/em&gt; (donc à destination de tout le monde) afin d’annoncer à tous les réseaux alentours qu’il a besoin de se connecter à un wifi, et qu’il peut utiliser certains paramètres (au hasard, la version A/B/G/N, mais également d’autres).&lt;br /&gt;
+Evidemment, les paquets de ce genre sont normés, grâce au standard 802.11, et ressemblent techniquement à cela :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_request.png&quot; alt=&quot;Probe Reponse&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_request_wireshark.png&quot; alt=&quot;Probe Reponse Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Je ne vais pas expliquer tous les champs, mais pour faire simple, on a ici 4 informations importantes (il y en a d’autres évidemment) :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; : une valeur de 0x0004 correspond à un paquet de type probe request.&lt;/li&gt;
+  &lt;li&gt;la &lt;strong&gt;&lt;em&gt;Destination Address&lt;/em&gt;&lt;/strong&gt; : l’adresse MAC de la borne wifi à qui le paquet est envoyé. Je disais plus haut que les &lt;em&gt;probes requests&lt;/em&gt; envoyaient en broadcast, mais il est aussi possible d’envoyer en &lt;em&gt;unicast&lt;/em&gt; (vers une seule machine), ici 00:0E:9E:51:AC:11. Ca permet de moins congestionner le réseau.&lt;/li&gt;
+  &lt;li&gt;la &lt;strong&gt;&lt;em&gt;Source Address&lt;/em&gt;&lt;/strong&gt; : l’adresse MAC de mon portable, afin que les AP puissent me répondre.&lt;/li&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Frame Body&lt;/em&gt;&lt;/strong&gt; : alors là, c’est un peu le bordel, parce que les normes wifi ont évolué au fil du temps. Du coup, les paramètres renseignés dans le &lt;em&gt;Frame Body&lt;/em&gt; sont carrément variables. Dans la version 2016 de la norme 802.11, on trouve jusqu’à 20 champs (tableau 9.33, page 706). Chaque champ se compose de 3 parties : un ID, la taille du champ, et sa valeur. Ils permettent de définir les capacités du &lt;em&gt;supplicant&lt;/em&gt; (le client Wifi), afin que l’AP sache s’il pourra répondre ou non. On retrouve comme informations, les channels utilisables, les taux de transfert, et en fonction de pas mal de paramètres, d’autres informations.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Pour information, tout ce qui précède le &lt;em&gt;Frame Body&lt;/em&gt; est appelé le &lt;strong&gt;&lt;em&gt;MAC Header&lt;/em&gt;&lt;/strong&gt;. On en reparlera pas, mais sachez le :)&lt;br /&gt;
+De plus, le &lt;em&gt;Frame Body&lt;/em&gt; est différent selon les paquets. Ici, on a uniquement des paramètres taggués. Comme on ne peut pas savoir à l’avance quels paramètres seront présents, on est obligé d’utiliser un principe de tags pour chaque champ (d’où l’utilisation d’ID). Le Frame Body étant spécifique selon les paquets, cela ne sera pas toujours le cas. On pourra trouver des paramètres fixes (donc pas besoin d’ID). Don’t worry, j’explique tout bien komilfo à la fin.&lt;/p&gt;
+
+&lt;p&gt;Bref. Une fois que cette étape est passée, les AP qui sont à portée vont répondre à ma machine deux choses :&lt;br /&gt;
+La première, c’est :&lt;/p&gt;
+
+&lt;p&gt;“Ok  mec, pas la peine de crier, je t’ai entendu.”&lt;/p&gt;
+
+&lt;p&gt;C’est l’&lt;strong&gt;&lt;em&gt;ACK&lt;/em&gt;&lt;/strong&gt; (&lt;em&gt;ACKnowledgment&lt;/em&gt;) que l’AP envoie au &lt;em&gt;supplicant&lt;/em&gt;, juste pour valider que le message a bien été reçu.&lt;br /&gt;
+C’est un paquet très court, qui ne contient quasiment rien. Il est tellement court, qu’il ne contient même pas l’adresse MAC de la source ! Après quelques recherches, on explique &lt;a href=&quot;https://stackoverflow.com/questions/37040303/why-do-802-11-acknowledgement-frames-have-no-source-mac&quot; target=&quot;_blank&quot;&gt;ici&lt;/a&gt;, &lt;a href=&quot;http://cnp3book.info.ucl.ac.be/2nd/html/protocols/wifi.html&quot; target=&quot;_blank&quot;&gt;là&lt;/a&gt; et dans le §9.2.8 de la doc que c’est normal qu’il n’y ait pas de source parce que l’AP ne peut répondre qu’à une seule machine pendant un court laps de temps, grâce à un &lt;em&gt;timer&lt;/em&gt;. Du coup, on sait forcément à qui s’adresse le ACK et ça fait un paquet plus court à envoyer.&lt;br /&gt;
+Voilà à quoi ressemble un &lt;em&gt;ACK&lt;/em&gt; :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/ack.png&quot; alt=&quot;ACK packet&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/ack_wireshark.png&quot; alt=&quot;ACK packet Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Au niveau des infos, c’est plus simple, vu que le but du jeu, c’est juste que l’AP dise que le message est bien arrivé. Dans les champs utiles, on a simplement :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;un &lt;em&gt;Frame Control&lt;/em&gt; qui correspond à 0x00D4,&lt;/li&gt;
+  &lt;li&gt;l’adresse de destination, qui est donc l’adresse source du &lt;em&gt;probe request&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ce message apparait quasiment après chaque paquet reçu, je n’en parlerai plus à partir de maintenant, mais il faut garder en tête qu’il est (presque) toujours présent.&lt;/p&gt;
+
+&lt;p&gt;La deuxième chose, c’est ça :&lt;/p&gt;
+
+&lt;p&gt;“Toi et moi, c’est un match, tiens voilà mes infos si tu veux qu’on discute ensemble”.&lt;/p&gt;
+
+&lt;p&gt;C’est le &lt;strong&gt;&lt;em&gt;Probe Response&lt;/em&gt;&lt;/strong&gt;. Techniquement, il contient, comme pour la requête, plusieurs informations utiles au client (nom du constructeur, SSID, channel, etc) et ressemble beaucoup au Probe Request :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_response.png&quot; alt=&quot;Probe Response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/probe_response_wireshark.png&quot; alt=&quot;Probe Response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Dans la liste des champs intéressants, on retrouve les mêmes choses que pour le probe request (&lt;em&gt;Frame Control&lt;/em&gt;, Destination, Source, &lt;em&gt;Body&lt;/em&gt;).&lt;br /&gt;
+Evidemment, les MAC source et destination sont inversées, et le &lt;em&gt;Frame Body&lt;/em&gt; est différent. Celui-ci, encore une fois très important, donne des informations, comme le type de chiffrement utilisé (j’en reparle un peu plus loin), qui permettent à mon PC de savoir s’il est en capacité de se connecter à cet AP.&lt;/p&gt;
+
+&lt;p&gt;Bon, maintenant que les réponses des bornes ont été récupérées par ma machine, elle décide quel est le meilleur réseau auquel se connecter, en fonction de plusieurs paramètres, du genre la puissance du signal, le réseau préféré, ou encore le débit proposé. Libre à l’OS de choisir ce qu’il veut. Le mien, par exemple, a une fâcheuse tendance à choisir le réseau le plus pourri.
+Une fois que le choix est fait, on va passer à la phase suivante : l’authentification.&lt;/p&gt;
+
+&lt;h3 id=&quot;authentification&quot;&gt;Authentification&lt;/h3&gt;
+
+&lt;p&gt;On a découvert les réseaux à proximité, on va donc pouvoir s’attaquer à la deuxième étape : l’authentification.&lt;br /&gt;
+Une fois que le &lt;em&gt;supplicant&lt;/em&gt;  a choisi son AP, il va devoir lui dire qu’il veut se connecter. Et alors là… C’est le bordel. Grave.&lt;/p&gt;
+
+&lt;p&gt;Pour s’authentifier, le client va donc envoyer une première requête. Cette requête va contenir un élément important : le type d’authentification. Soit &lt;strong&gt;&lt;em&gt;Open&lt;/em&gt;&lt;/strong&gt;, soit &lt;strong&gt;&lt;em&gt;Shared Key&lt;/em&gt;&lt;/strong&gt;. Bêtement, on pourrait penser que &lt;em&gt;Open&lt;/em&gt; correspond aux réseaux ouverts (wifi mcdo ou autres), et que &lt;em&gt;Shared Key&lt;/em&gt; correspondrait aux wifi authentifié (WEP et WPA/WPA2). MAIS NON.&lt;br /&gt;
+La blague dans l’histoire, c’est que :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;Shared Key&lt;/em&gt; correspond à du chiffrement WEP,et uniquement à du WEP (§12.3.3.3.1 de la doc 802.11)&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;Open&lt;/em&gt; correspond à un wifi ouvert… ou alors à du chiffrement via WPA/WPA2. Les maux de têtes commencent à arriver ? Ce n’est que le début.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;C’est débile, oui, mais pourquoi ? En fait, à la mise en place de la norme 802.11, les créateurs n’ont prévu à la base que de wifi non chiffré, ou chiffré en WEP. Du coup, il faut prendre en compte que tout ce qui n’est pas WEP, est &lt;em&gt;Open&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Maintenant, comment mon ordinateur sait que l’AP m’a proposé du non chiffré, du WEP, du WPA, ou du WPA2 ?&lt;br /&gt;
+A la base, c’était simple. Le &lt;em&gt;Probe Response&lt;/em&gt; contenait un champ &lt;strong&gt;&lt;em&gt;Privacy&lt;/em&gt;&lt;/strong&gt; (un bit mis à 1) qui définissait ou non l’utilisation du WEP. Et puis, ce fut le drame.&lt;br /&gt;
+Lorsque l’IEEE s’est rendu compte que WEP était pété, il ont sorti un truc à l’arrache, histoire colmater un peu : le WPA. Ce WPA utilise un chiffrement de type TKIP.&lt;br /&gt;
+SAUF QUE, comme il a été fait un peu à la wanagain bistoufly, les mecs se sont dit qu’ils allaient préparer un truc plus propre pour la suite : WPA2, qui utilise du CCMP.&lt;br /&gt;
+SAUF QUE, histoire que tout soit bien retrocompatible, quand ils ont fait l’amendement 802.11i (qui officialise WPA/WPA2), les bonhommes ont décidé que WPA devrait AUSSI supporter CCMP, et que WPA2 devrait AUSSI supporter TKIP.&lt;br /&gt;
+SAUF QUE, encore une fois, histoire de compatibilité, il a fallu faire des bidouilles &lt;em&gt;from space&lt;/em&gt;. Donc, pour WPA, il a fallu utiliser un paramètre optionnel spécifique (le tag 221) qui liste les chiffrements disponibles en WPA. Pour WPA2, ils ont créé un autre paramètre : le RSN (Robust Security Network).
+(Evidemment, trouver ça dans 3500 pages de doc… bisou.)&lt;/p&gt;
+
+&lt;p&gt;Donc, pour résumer le fonctionnement, dans le &lt;em&gt;Probe Response&lt;/em&gt;, ça se passe comme ça :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Mode &lt;em&gt;Shared&lt;/em&gt; : WEP&lt;/li&gt;
+  &lt;li&gt;Mode &lt;em&gt;Open&lt;/em&gt; :
+    &lt;ul&gt;
+      &lt;li&gt;tag RSN :
+        &lt;ul&gt;
+          &lt;li&gt;CCMP et/ou TKIP (mode WPA2)&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;tag optionnel 221 :
+        &lt;ul&gt;
+          &lt;li&gt;CCMP et/ou TKIP (mode WPA)&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;aucun tag :
+        &lt;ul&gt;
+          &lt;li&gt;wifi non chiffré&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;En fonction de ces informations, ma bécane saura ainsi lors de cette première requête de la phase d’authentification s’il faut envoyer une demande &lt;em&gt;Shared&lt;/em&gt; ou &lt;em&gt;Open&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;On va commencer par étudier le type &lt;em&gt;Open&lt;/em&gt;, c’est le plus simple :)&lt;br /&gt;
+La requête qu’envoie mon PC, c’est littéralement :&lt;/p&gt;
+
+&lt;p&gt;“Hey, psst, hey ! Tu me laisses rentrer s’il te plait ?”&lt;/p&gt;
+
+&lt;p&gt;Comme d’hab, je met le petit schéma de la requête. Pour le coup, j’ai détaillé le &lt;em&gt;Frame Body&lt;/em&gt; parce qu’il est important de comprendre ce qu’il contient.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg1.png&quot; alt=&quot;Open Authentication request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg1_wireshark.png&quot; alt=&quot;Open Authentication request Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Tout se joue donc au niveau du &lt;em&gt;Frame Body&lt;/em&gt;. En mode &lt;em&gt;Open&lt;/em&gt;, on trouve trois champs :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;l’&lt;strong&gt;&lt;em&gt;Authentication algorithm&lt;/em&gt;&lt;/strong&gt; : qui correspond à 0x0000&lt;/li&gt;
+  &lt;li&gt;l’&lt;strong&gt;&lt;em&gt;Authentication SEQuence&lt;/em&gt;&lt;/strong&gt; : puisque c’est le premier message de l’authent, il correspond à 0x0001&lt;/li&gt;
+  &lt;li&gt;le &lt;strong&gt;&lt;em&gt;Status Code&lt;/em&gt;&lt;/strong&gt; : tout se passe bien, il est à 0x0000&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Une fois que l’AP a reçu ce message d’authentification, il va bien évidemment y répondre. La réponse est quasiment identique à la requête. Dans le &lt;em&gt;Frame Body&lt;/em&gt;, le seul champ différent est l’Authentication SEQuence qui passe à 0x0002. Le reste ne bouge pas, si tout se passe bien :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg2.png&quot; alt=&quot;Open Authentication response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_open_msg2_wireshark.png&quot; alt=&quot;Open Authentication response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Une fois que la réponse est envoyée au client (et que l’AP a bien reçu le ACK qui suit), tout est ok, les deux machines sont dans un état authentifié, mais non associé. Je parle de l’association après, mais pour l’instant, étudions un peu l’authentification en mode &lt;em&gt;Shared&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;En mode &lt;em&gt;Shared&lt;/em&gt; (donc WEP), il y a un &lt;strong&gt;&lt;em&gt;4Way handshake&lt;/em&gt;&lt;/strong&gt;, qui permet de valider la clé Wifi, sans qu’elle ne passe en clair sur le réseau (bon, ça n’a pas été suffisant pour péter le WEP, mais l’intention était louable :) )&lt;br /&gt;
+Le premier message est, à l’instar du mode &lt;em&gt;Open&lt;/em&gt;, envoyé par le client et est identique, hormis l’&lt;em&gt;Authentication Algorithm&lt;/em&gt;, qui correspond cette fois ci à 0100, pour signifier le mode &lt;em&gt;Shared&lt;/em&gt;. Malheureusement, je n’ai pas d’équipements qui me permette de faire d’authent WEP sous la main, donc j’ai honteusement (ou pas) “emprunté” des images venant de &lt;a href=&quot;https://mrncciew.com/2014/10/10/802-11-mgmt-authentication-frame/&quot; target=&quot;_blank&quot;&gt;mrncciew.com&lt;/a&gt;. On lui dit merci :)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg1.png&quot; alt=&quot;Shared Authentication request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg1_wireshark.png&quot; alt=&quot;Shared Authentication request Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Le second message, envoyé par l’AP, va faire les actions suivantes : incrémenter le numéro de séquence pour le passer à 0x0002, et envoyer un paramètre taggé (id 16), qui correspond à un challenge que ma machine devra utiliser pour valider la clé Wifi. La valeur de ce challenge est une chaine pseudo aléatoire de 128 octets.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg2_wireshark.png&quot; alt=&quot;Shared Authentication challenge Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Un troisième message va être envoyé par le supplicant. Celui ci va contenir principalement :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;l’Initialization Vector (IV), qui permet d’éviter d’avoir deux messages chiffrés identiques pour un même clair&lt;/li&gt;
+  &lt;li&gt;l’Integrity Check Value (ICV), qui est un bête CRC32 du challenge clair&lt;/li&gt;
+  &lt;li&gt;le challenge response, qui est (IV + challenge) chiffré avec la clé WEP.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg3_wireshark.png&quot; alt=&quot;Shared Authentication challenge validation Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Une fois ce message reçu par l’AP, ce dernier va déchiffrer le challenge, vérifier qu’il correspond bien à son ICV, et vérifier qu’il correspond au clair envoyé dans le message 2.&lt;br /&gt;
+Si le challenge et sa réponse sont équivalents, l’AP va donc envoyer un dernier message de validation, les données du &lt;em&gt;Frame Body&lt;/em&gt; seront classiques : l’Authentication Algorithm toujours positionné à &lt;em&gt;Shared Key&lt;/em&gt;, l’Authentication SEQuence à 0x0004, et le Status Code à 0x0000.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg4.png&quot; alt=&quot;Shared Authentication response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/authentication_shared_msg4_wireshark.png&quot; alt=&quot;Shared Authentication response Wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A l’inverse, s’il y a un souci (mauvaise clé par exemple), le Status Code sera différent de 0x0000 et l’AP considérera que le client n’a pas pu s’authentifier.&lt;br /&gt;
+Ouf, next step !&lt;/p&gt;
+
+&lt;h3 id=&quot;association&quot;&gt;Association&lt;/h3&gt;
+
+&lt;p&gt;Admettons que tout ce soit bien passé jusqu’à maintenant. Il reste encore une étape obligatoire afin que mon laptop puisse enfin se connecter au reste du réseau, c’est l’association. Jusqu’à maintenant, nous avions découvert les AP via les &lt;em&gt;probes&lt;/em&gt;, puis nous avons validé qu’on pouvait s’y connecter avec l’authentification. Du coup, il ne rest plus qu’à finaliser la connexion, via un échange de requête/réponse du type Association.&lt;br /&gt;
+La première question qui m’est venue en tête en lisant les docs a été “Pourquoi faire ?!”. Je veux dire, l’AP et la station sont potes maintenant, ils se sont dit des formalités, se sont serrés la pince et tout, donc où est l’intéret ?&lt;br /&gt;
+Et bien en fait, tout simplement pour échanger des informations supplémentaires. Dans ces infos, on retrouve par exemple le SSID du wifi, le BSS (Basic Service Set), etc. Il sert également à transmettre l’AID (Association ID) qui est l’équivalent d’une prise réseau dans une architecture câblé (une borne, ça ne sera jamais qu’un switch, donc elle a besoin d’une “prise” sur laquelle le client se branchera).&lt;br /&gt;
+Bon maintenant, vous êtes habitués aux trames, donc on va pas y aller par quatres chemins. Le &lt;em&gt;supplicant&lt;/em&gt; envoie le premier message, et l’AP la réponse associée :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_request.png&quot; alt=&quot;Association request&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_request_wireshark.png&quot; alt=&quot;Association request wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Les paramètres importants de la requête d’association envoyée par la station sont :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; positionné à 0x0000&lt;/li&gt;
+  &lt;li&gt;Les &lt;strong&gt;&lt;em&gt;capabilities&lt;/em&gt;&lt;/strong&gt;, définissant les capacités demandées par l’AP lors du &lt;em&gt;probe response&lt;/em&gt; et utilisables par la station. Enfin je crois.&lt;/li&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Listen Interval&lt;/em&gt;&lt;/strong&gt;, qui donne à quelle intervalle de temps le supplicant écoutera les frames de type Beacons, si le Power Save Mode est activé&lt;/li&gt;
+  &lt;li&gt;Une foultitude de paramèters taggués, dépendants d’options diverses et variées&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_response.png&quot; alt=&quot;Association response&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/association_response_wireshark.png&quot; alt=&quot;Association response wireshark&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Sur le même principe, la réponse émise par l’AP sont :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Frame Control&lt;/em&gt;&lt;/strong&gt; mis à 0x0001&lt;/li&gt;
+  &lt;li&gt;Les &lt;strong&gt;&lt;em&gt;capabilities&lt;/em&gt;&lt;/strong&gt;, qui valide ce qui a été envoyé par le client.&lt;/li&gt;
+  &lt;li&gt;Le &lt;strong&gt;&lt;em&gt;Status Code&lt;/em&gt;&lt;/strong&gt;, mis à 0x0000 si l’association s’est déroulée correctement et que les &lt;em&gt;capabilities&lt;/em&gt; sont correctes&lt;/li&gt;
+  &lt;li&gt;L’&lt;strong&gt;&lt;em&gt;Association ID&lt;/em&gt;&lt;/strong&gt;, qui est bahhhh… un ID quoi ^^&lt;/li&gt;
+  &lt;li&gt;Et encore une fois plusieurs paramètres optionnels&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Je ne détaille pas les différentes capabilities, ni les paramètres taggués, déjà parce que je voulais faire un article, pas réécrire toute la doc, et ensuite parce que ça fait intervenir des notions dont je n’ai pas parlé, et qui ne font pas partie du process de connexion.&lt;/p&gt;
+
+&lt;p&gt;Bref, une fois que la réponse a été reçue par la machine, on peut considérer que CA Y EST ! ENFIN, on est connecté au wifi !&lt;/p&gt;
+
+&lt;h3 id=&quot;wpa-et-wpa2&quot;&gt;WPA et WPA2&lt;/h3&gt;
+
+&lt;p&gt;Ca y est ? On est connecté ? Vraiment ? Well… Pas tout à fait en fait :D&lt;br /&gt;
+Et oui, souviens toi lecteur, jusqu’à présent, on se connectait sur des réseaux “&lt;em&gt;Open&lt;/em&gt;” ou “&lt;em&gt;Shared Key&lt;/em&gt;”. Mais je n’ai pas encore parlé ici de l’authentification via TKIP ou CCMP !
+Donc, pour des réseaux hotspot ou WEP, on s’arrête ici.&lt;br /&gt;
+Par contre, pour les réseaux WPA/WPA2, il reste une étape obligatoire : l’authentification 802.1X (à ne pas confondre avec le 802.11, attention). Bah oui, puisqu’il a fallu rendre le tout un minimum interopérable, on a du rajouter une (dernière) couche après l’association pour ces deux chiffrements.&lt;/p&gt;
+
+&lt;p&gt;Concrètement, le 802.1X est une norme, qui utilise le protocole EAP (pour Extensible Authentication Protol). Globalement, un poste (en câblé ou non) voulant accéder au réseau doit pouvoir prouver sa bonne foi. L’équipement directement connecté -un switch sur du câblé ou l’AP pour du wifi- à ce poste bloque tout accès au réseau (il “ferme” le port) tant que l’identité n’est pas validée. Une fois que le poste est validé, il “ouvre” le port afin que la station puisse discuter avec le réseau. Pour prouver son identité, c’est assez libre, on peut utiliser l’adresse MAC, un identifiant AD, ou encore… une clé wifi :)&lt;/p&gt;
+
+&lt;p&gt;Comme j’ai déjà expliqué en grande partie cette authentification dans mon article sur KRACK, je ne vais pas m’embéter à tout réécrire ici, et &lt;a href=&quot;http://lsdsecdaemon.com/krack-review&quot; target=&quot;_blank&quot;&gt;je vous laisse aller le lire&lt;/a&gt; :) Attention cependant, je suis resté assez spécifique au 802.1X wifi. Comme c’est une norme de plus en plus utilisée, il y a pas mal de lecture sur les internets pour du 802.1X cablé, donc je vous laisse le loisir de chercher ^^&lt;/p&gt;
+
+&lt;h3 id=&quot;le-détail-du-format&quot;&gt;Le détail du format&lt;/h3&gt;
+
+&lt;p&gt;Depuis tout à l’heure, j’explique le fonctionnement du 802.11 d’une manière assez statique, c’est à dire que pour chaque type de paquet, j’ai détaillé ce qu’on y trouvait.&lt;br /&gt;
+En fait, ce protocole est très modulaire (et surtout très casse bonbons). J’ai fait pas mal de réseau au niveau pro, et je pense que c’est un des protos les plus tordus que j’ai pu voir jusqu’à maintenant, du fait de sa modularité, ainsi que des différentes specs rajoutées au fil du temps.&lt;br /&gt;
+Bon, du coup, l’idée, c’est de comprendre le fonctionnement générique de ce protocole, et non pas juste de voir quelques paquets en dur comme on a fait jusqu’à présent.&lt;br /&gt;
+Quand je dis comprendre, c’est en partie car il serait trop long de tout expliquer. En fait, chaque champ va en fait définir un subset de champs, et pareil pour chaque paramètre du subset, ce qui peut créer une ramification assez… tordue ! Disons le autrement : c’est le bordel. Je répète : LE BORDEL.&lt;/p&gt;
+
+&lt;p&gt;Gentle reminder : ici, on lit les octets en &lt;em&gt;little endian&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_frame_control.png&quot; alt=&quot;Frame Control&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;L’idée principale, c’est que CHAQUE paquet envoyé en wifi contient un en-tête 802.11. Pour que tout fonctionne correctement, il doit être normé. Ainsi, la première partie de la frame s’appelle le MAC header, et on retrouvera toujours en première position un champ Frame Control, codé sur deux octets. Ce champ est EXTREMEMENT important, puisque c’est lui qui définir les champs suivants.
+Il se divise en 3 parties :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/frame_control1.png&quot; alt=&quot;Frame Control byte 1&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Les bits 6 et 7 correspondent à la version du protocole. La doc 802.11 définit que la version est actuellement 0. Donc, hormis un bug/attaque/autre, ces bits ne changent pas et seront à 00&lt;/li&gt;
+  &lt;li&gt;Les bits 4 et 5 correspondent au type de paquet. Il en existe 4 :
+    &lt;ul&gt;
+      &lt;li&gt;Management (bits 00) : Ils permettent d’envoyer des “commandes” entre la station et l’AP. Typiquement les probes, les authentications et les associations sont de type management&lt;/li&gt;
+      &lt;li&gt;Control (bits 01) : Ils servent à contrôler que tout se passe bien. On trouve les &lt;em&gt;ACKnowledgement&lt;/em&gt;, mais aussi d’autres (comme les RTS, qui servent à demander la parole sur le réseau)&lt;/li&gt;
+      &lt;li&gt;Data (bits 10) : Ils contiennent les données des couches supérieures du modèle OSI (ARP, IP, TCP, HTTP, etc) et seront donc envoyées à la stack réseau&lt;/li&gt;
+      &lt;li&gt;Extension (bits 11) : Ils sont utilisé pour étendre les fonctionnalités, mais on va pas s’embéter avec ça.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Les bits 0 à 3 correspondent au sous-type de paquet. Je ne vais pas tous les lister parce qu’il en existe beaucoup, mais on trouve par exemple :
+    &lt;ul&gt;
+      &lt;li&gt;Association Request (bits 0000)&lt;/li&gt;
+      &lt;li&gt;Association Response (bits 0001)&lt;/li&gt;
+      &lt;li&gt;Authentication (bits 1011)&lt;/li&gt;
+      &lt;li&gt;Request To Send (RTS) (bits 1011)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On remarque au passage qu’un sous type RTS et Authentication ont les mêmes bits. C’est normal : puisque le type (les bits 4 et 5) est différent, ils ne se marchent pas sur les pieds :)&lt;br /&gt;
+Ainsi, si je veux envoyer une requête d’authentification, mon Frame Control correspondra à :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Version 0 : bits 00&lt;/li&gt;
+  &lt;li&gt;Type Management : bits 00&lt;/li&gt;
+  &lt;li&gt;Sous type Authentication : bits 1011&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On aura ainsi un octet 1011 00 00, soit 0x0b.&lt;/p&gt;
+
+&lt;p&gt;A l’inverse, pour un paquet RTS, le Frame Control sera :&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Version 0 : bits 00&lt;/li&gt;
+  &lt;li&gt;Type Management : bits 01&lt;/li&gt;
+  &lt;li&gt;Sous type Authentication : bits 1011&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ce qui nous donne 1011 01 00, soit 0xb4.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/frame_control2.png&quot; alt=&quot;Frame Control byte 2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Le deuxième octet du Frame Control est dépendant du premier. Si le type est de 1 et le sous type de 6, on est dans une frame Control/Extension, et les paramètres seront donc spécifiques à l’extension. On va pas trop y toucher dans cet article (ni dans aucun autre d’ailleurs :) ), parce que c’est déjà assez bordélique au niveau du fonctionnement basique.&lt;br /&gt;
+Pour tous les autres types/sous types, on retrouvera une liste fixe de paramètres :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;To DS (Distribution System) : avec le champ suivant, cela permet en gros de savoir si une machine veut discuter sur le réseau avec une autre machine, ou si c’est de la communication entre l’AP et la station. &lt;a href=&quot;https://dalewifisec.wordpress.com/2014/05/17/the-to-ds-and-from-ds-fields/&quot; target=&quot;_blank&quot;&gt;Plus de détails ici.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;From DS : bah du coup, faut lire l’explication du champ précédent :)&lt;/li&gt;
+  &lt;li&gt;More Fragment : mis à 1 s’il reste d’autres paquets pour un message donné (c’est la fragmentation réseau : un paquet à une taille définie et si le message a envoyer est plus long, on le coupe en plusieurs paquets)&lt;/li&gt;
+  &lt;li&gt;Retry : mis à 1 si le paquet a été ré-émis une seconde fois par la source (donc si celle ci n’a pas reçu de ACK)&lt;/li&gt;
+  &lt;li&gt;Power Management : pour tout ce qui est gestion de la batterie des machines. Le wifi étant utilisé pour des postes nomades, un gestion de l’énergie a été mise en place dans les specs&lt;/li&gt;
+  &lt;li&gt;More Data : ce bit est également utilisé pour la gestion d’énergie et indique que des données sont sur l’AP, en attente d’envoi vers le &lt;em&gt;supplicant&lt;/em&gt;.&lt;/li&gt;
+  &lt;li&gt;Protected Frame : assez explicite :) Ce champ est mis à 1 quand le payload du paquet est chiffré via WEP/WPA/WPA2. On le retrouve dans dans les frames datas par exemple&lt;/li&gt;
+  &lt;li&gt;+HTC/Order : c’est un champ un peu bâtard. On met le +HTC (High Throughput Control) à 1 dans les frames de type Control Wrapper. Ce type de frame a surement une utilité. Mais je sais pas laquelle. Lorsque le paquet n’est pas un Control Wrapper, il sert à ordonnancer les frames QoS.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On voit donc que ces deux premiers octets vont définir le comportement global de la frame. Maintenant, attelons nous aux autres champs. Comme dit plus haut, je ne vais pas TOUT détailler, puisqu’il existe beaucoup de combinaisons possibles, en fonction du type/sous type.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_duration_id.png&quot; alt=&quot;Duration-id&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt; 
+Ensuite, toujours dans le MAC header, on trouve le champ Duration/ID, d’une taille de 2 octets. Ce champ est fonction du type/sous type, et peut avoir quatre types de valeurs possibles. Je résume rapidement parce que la définition complète de ce champ fait 4 pages dans la doc (oui oui. Quatre), mais en gros, il correspond soit à l’Association ID (dont j’ai parlé plus haut), soit à une durée pour envoyer un ACK, soit à une valeur fixe de 32768.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_addresses.png&quot; alt=&quot;Addresses&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Suite à ce Duration/ID, viennent les champs Addresses. Généralement, dans un paquet, on trouve un tuple de deux adresses (MAC source et dest, IP source et dest, etc). Là non. On peut en avoir entre une et quatre.
+Pourquoi jusqu’à quatre adresses ? Et bien en fait, c’est logique :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;la Receiving Address (RA) :  l’adresse MAC de la machine qui recoit le paquet&lt;/li&gt;
+  &lt;li&gt;la Transmitting Address (TA) : l’adresse MAC de la machine qui transmet le paquet.&lt;/li&gt;
+  &lt;li&gt;la Source Address (SA) : l’adresse MAC de la machine source&lt;/li&gt;
+  &lt;li&gt;la Destination Address (DA) : l’adresse MAC de la machine qu’on cherche à joindre (un autre poste du LAN ou la &lt;em&gt;gateway&lt;/em&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ici quelques explications s’imposent : Dans un réseau Wifi, il n’y a pas forcément qu’une seule borne. Il est fréquent que plusieurs bornes utilisent le même réseau wifi. Ainsi, si ma bécane veut discuter avec google, elle va envoyer un paquet à la borne sur laquelle elle est connectée avec sa propre MAC comme SA et la &lt;em&gt;gateway&lt;/em&gt; comme DA (bah oui, on discute avec la GW, pas avec google directement). Le champ TA sera également celui de mon laptop, et le champ RA sera la MAC de la borne wifi. Si cette borne est juste un relais, elle va donc devoir envoyer ce paquet à une seconde borne. A ce moment, elle va changer les champs TA et RA. TA deviendra donc l’addresse de la première borne et SA celle de la seconde borne. Cette deuxième AP va ensuite envoyer le paquet à la gateway. Lorsque la réponse arrivera, le chemin inverse sera effectué. Cela dit, un beau schéma, c’est toujours mieux :&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/addresses.png&quot; alt=&quot;Addresses explanation&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Comme toujours les champs addresses correspondent aux types et sous type. Par exemple, les frames de controle n’ont pas besoin des 4, puisque l’AP communique directement avec mon PC.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_bssid.png&quot; alt=&quot;BSS ID&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;On peut dans certaines trames également trouver le champ &lt;em&gt;BSS ID&lt;/em&gt; qui correspond à la MAC de l’AP.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_seq_control.png&quot; alt=&quot;Sequence Control&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ce champ se divise en deux parties : une première de 4 bits qui indique le numéro de fragmentation, et une seconde de 12 bits qui est le numéro de séquence. Qui est… bah un numéro quoi. qui s’incrémente et tout.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_body.png&quot; alt=&quot;Frame Body&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ENFIN ! ON arrive au &lt;em&gt;Frame Body&lt;/em&gt; (c’est pas trop tôt, l’article est commencé depuis 3 mois).
+Le &lt;em&gt;Frame Body&lt;/em&gt; a toujours une taille variable. Tout simplement parce qu’il est inhérent à chaque paquet.&lt;/p&gt;
+
+&lt;p&gt;Pour les frames de types données, c’est plutôt simple :  on envoie la sauce, avec toutes les couches OSI supérieures (mais si lecteur, tu sais bien, le truc qu’on appelle IP par exemple). Là, il n’y a pas à débattre, tout ce qui est envoyé ici n’a aucun rapport avec le 802.11. La taille peut aller de 0 à 2304 octets. Si on a un message plus gros à faire passer, on doit mettre le bit More Fragments à 1. Une fois que le paquet est reçu, la stack réseau prend le relais et envoie le paquet au niveau applicatif.&lt;/p&gt;
+
+&lt;p&gt;Ensuite, les frames de type management et controle : vous connaissez le refrain maintenant : “Ca dépend du type et du sous type”. On ne change pas une équipe qui gagne.&lt;br /&gt;
+EN fait, des exemples, j’en ai déjà donné plusieurs tout au long de l’article : les probes, les authentications, les associations, etc. Ici la taille est en fonction des paramètres envoyés. Elle peut avoir une taille qui va de 0 (pour les types ACK par exemple) à 2304. Cela dit, on a rarement 2304 octets des paramètres à envoyer d’un coup ! ^^&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/802-11/general_fcs.png&quot; alt=&quot;Frame Check Sequence&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Après le &lt;em&gt;Frame Body&lt;/em&gt;, on trouve le truc le plus simple du proto : le Fram Check Sequence (FCS). C’est toujours un champ de 4 octets, qui contient un CRC32 du MAC header et du &lt;em&gt;Frame Body&lt;/em&gt;. Les plus malins auront compris qu’il sert à vérifier l’intégrité du paquet :) Si le CRC32 est bon, le paquet est accepté et transmis vers la destination. Dans ce cas, un ACK est envoyé à la source pour dire “wesh gros, j’ai fait passer ton petit mot”. Si le FCS est faux, c’est qu’il y a eu erreur. A ce moment, l’AP ne prévient même pas qu’il y a eu un souci. Du coup, mon PC attend un certain moment, puis renvoie le paquet avec le champ Retry à 1.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Pfiouuu, c’était compliqué. 3500 pages à se taper (bon pas tout quand même, j’ai fait pas mal de Ctrl + F), des recherches dans les tréfonds des internets du web, un article de plus de 30000 caractères, mais bon, au moins, je sais ce qui se passe le matin, quand mon laptop boote et que je bois mon café :)&lt;br /&gt;
+En tout cas, même si j’ai galeré, j’ai beaucoup appris techniquement, c’est un très bon exercice à faire, et j’espère que vous aurez aussi appris 2 ou 3 choses !&lt;/p&gt;
+
+&lt;p&gt;Oh, et du coup, suite à KRACK, la Wi Fi Alliance a décidé de faire bouger les choses avec la mise en place du WPA3. A cela, deux solutions : soit ils vont updater les specs pour rajouter toujours plus de bazar, soit ils vont créer une nouvelle spec from scratch, et cet article ne sera bientôt plus utile ^^&lt;/p&gt;
+
+&lt;h3 id=&quot;liens-utiles&quot;&gt;Liens utiles&lt;/h3&gt;
+
+&lt;p&gt;Tous les liens qui m’ont servi à comprendre le 802.11&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://ieeexplore.ieee.org/document/7786995/&quot; target=&quot;_blank&quot;&gt;ieeexplore.ieee.org&lt;/a&gt; : le lien vers la doc officielle, évidemment. Attention par contre, il faut s’inscire&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://mrncciew.com/&quot; target=&quot;_blank&quot;&gt;mrncciew.com&lt;/a&gt; : une bible. C’est pas super beau, un peu brouillon, mais beaucoup d’infos !&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cwnp.com/forums/&quot; target=&quot;_blank&quot;&gt;www.cwnp.com&lt;/a&gt; : un forum dédié au wifi. C’est le site officiel de la certif CWNP, donc il y a des infos de qualité&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://documentation.meraki.com/MR/WiFi_Basics_and_Best_Practices/802.11_Association_process_explained&quot; target=&quot;_blank&quot;&gt;meraki.com&lt;/a&gt; : un résumé high level des étapes de connexion&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cisco.com/c/en/us/support/docs/wireless-mobility/wlan-security/68583-FAQ-Wireless-Security.html&quot; target=&quot;_blank&quot;&gt;cisco.com&lt;/a&gt; : de la doc sur les méthodes de chiffrement&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://supportforums.cisco.com/t5/wireless-mobility-documents/802-11-sniffer-capture-analysis-wpa-wpa2-with-psk-or-eap/ta-p/3116990&quot; target=&quot;_blank&quot;&gt;cisco.com&lt;/a&gt; : quelques explications sur les frames d’authentification&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://community.arubanetworks.com/t5/Technology-Blog/A-closer-look-at-WiFi-Security-IE-Information-Elements/ba-p/198867&quot; target=&quot;_blank&quot;&gt;arubanetworks.com&lt;/a&gt; : des explications un peu plus détaillées que moi sur le RSN et TSN (Transitional Security Network, un truc qui a servi à passer de WEP à WPA2)&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://fiddy.free.fr/blog/index.php?post/2008/11/25/Le-WEP-suffisamment-s%C3%A9curis%C3%A9&quot; target=&quot;_blank&quot;&gt;fiddy.free.fr&lt;/a&gt; : explications détaillées en en français sur le chiffrement WEP, et pourquoi c’est tout pété&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/assets/zip/802.11/files_802.11.zip&quot;&gt;Fichiers utiles&lt;/a&gt; : Des pcap épuré pour pouvoir regarder le détail, et un html avec les schémas de la struct&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">layout: post title: “Le Wifi, comment ça marche” date: 2017-10-29 20:00:00 +0200 categories: Network permalink: Wifi-connection excerpt_separator:</summary></entry><entry><title type="html">KRACK : Review</title><link href="http://localhost:4000/krack-review" rel="alternate" type="text/html" title="KRACK : Review" /><published>2017-10-22T19:07:10+02:00</published><updated>2017-10-22T19:07:10+02:00</updated><id>http://localhost:4000/KRACK-Review</id><content type="html" xml:base="http://localhost:4000/krack-review">&lt;p&gt;Salut tout le monde&lt;/p&gt;
 
 &lt;p&gt;Bon, toute personne ayant suivi un minimum l’actu sécu ces jours ci aura forcément entendu parler de KRACK, la nouvelle vulnérabilité contre le WPA2.&lt;/p&gt;
 
