@@ -75,7 +75,7 @@ J’explique en fin de post le fonctionnement générique des trames 802.11. J�
 
 <p>Les puristes du réseau pourront me rétorquer qu’il existe des différences entre une trame et un paquet. Ma réponse est simple : osef. D’une part parce qu’on arrive très bien à comprendre l’idée générale, et d’autre part pour éviter des répétitions dans tous les sens.</p>
 
-<p>Oh, et n’oublions pas aussi que la doc fait quand même TROIS MILLES CINQ CENT PAGES. Il est donc possible que je me sois planté à certains endroits, dans ce cas, il ne faut pas hésiter à me coriger :)</p>
+<p>Oh, et n’oublions pas aussi que la doc fait quand même TROIS MILLES CINQ CENT PAGES. Il est donc possible que je me sois planté à certains endroits, dans ce cas, il ne faut pas hésiter à me corriger :)</p>
 
 <h3 id="découverte">Découverte</h3>
 
@@ -103,7 +103,7 @@ Evidemment, les paquets de ce genre sont normés, grâce au standard 802.11, et 
   <li>le <strong><em>Frame Body</em></strong> : alors là, c’est un peu le bordel, parce que les normes wifi ont évolué au fil du temps. Du coup, les paramètres renseignés dans le <em>Frame Body</em> sont carrément variables. Dans la version 2016 de la norme 802.11, on trouve jusqu’à 20 champs (tableau 9.33, page 706). Chaque champ se compose de 3 parties : un ID, la taille du champ, et sa valeur. Ils permettent de définir les capacités du <em>supplicant</em> (le client Wifi), afin que l’AP sache s’il pourra répondre ou non. On retrouve comme informations, les channels utilisables, les taux de transfert, et en fonction de pas mal de paramètres, d’autres informations.</li>
 </ul>
 
-<p>Pour information, tout ce qui précède le <em>Frame Body</em> est appelé le <strong><em>MAC Header</em></strong>. On en reparlera pas, mais sachez le :)<br />
+<p>Pour information, tout ce qui précède le <em>Frame Body</em> est appelé le <strong><em>MAC Header</em></strong>. On n’en reparlera pas, mais sachez le :)<br />
 De plus, le <em>Frame Body</em> est différent selon les paquets. Ici, on a uniquement des paramètres taggués. Comme on ne peut pas savoir à l’avance quels paramètres seront présents, on est obligé d’utiliser un principe de tags pour chaque champ (d’où l’utilisation d’ID). Le Frame Body étant spécifique selon les paquets, cela ne sera pas toujours le cas. On pourra trouver des paramètres fixes (donc pas besoin d’ID). Don’t worry, j’explique tout bien komilfo à la fin.</p>
 
 <p>Bref. Une fois que cette étape est passée, les AP qui sont à portée vont répondre à ma machine deux choses :<br />
@@ -219,14 +219,14 @@ La requête qu’envoie mon PC, c’est littéralement :</p>
 
 <p>Une fois que la réponse est envoyée au client (et que l’AP a bien reçu le ACK qui suit), tout est ok, les deux machines sont dans un état authentifié, mais non associé. Je parle de l’association après, mais pour l’instant, étudions un peu l’authentification en mode <em>Shared</em>.</p>
 
-<p>En mode <em>Shared</em> (donc WEP), il y a un <strong><em>4Way handshake</em></strong>, qui permet de valider la clé Wifi, sans qu’elle ne passe en clair sur le réseau (bon, ça n’a pas été suffisant pour péter le WEP, mais l’intention était louable :) )<br />
-Le premier message est, à l’instar du mode <em>Open</em>, envoyé par le client et est identique, hormis l’<em>Authentication Algorithm</em>, qui correspond cette fois ci à 0100, pour signifier le mode <em>Shared</em>. Malheureusement, je n’ai pas d’équipements qui me permette de faire d’authent WEP sous la main, donc j’ai honteusement (ou pas) “emprunté” des images venant de <a href="https://mrncciew.com/2014/10/10/802-11-mgmt-authentication-frame/" target="_blank">mrncciew.com</a>. On lui dit merci :)</p>
+<p>En mode <em>Shared</em> (donc WEP), il y a un <strong><em>4Way handshake</em></strong>, qui permet de valider la clé Wifi, sans qu’elle ne passe en clair sur le réseau (bon, le WEP a été pété malgré ça, mais l’intention était louable :) )<br />
+Le premier message est, à l’instar du mode <em>Open</em>, envoyé par le client et est identique, hormis l’<em>Authentication Algorithm</em>, qui correspond cette fois-ci à 0x0001, pour signifier le mode <em>Shared</em>. Malheureusement, je n’ai pas d’équipements qui me permette de faire d’authent WEP sous la main, donc j’ai honteusement (ou pas) “emprunté” des images venant de <a href="https://mrncciew.com/2014/10/10/802-11-mgmt-authentication-frame/" target="_blank">mrncciew.com</a>. On lui dit merci :)</p>
 
 <p><img src="/assets/images/802-11/authentication_shared_msg1.png" alt="Shared Authentication request" /></p>
 
 <p><img src="/assets/images/802-11/authentication_shared_msg1_wireshark.png" alt="Shared Authentication request Wireshark" /></p>
 
-<p>Le second message, envoyé par l’AP, va faire les actions suivantes : incrémenter le numéro de séquence pour le passer à 0x0002, et envoyer un paramètre taggé (id 16), qui correspond à un challenge que ma machine devra utiliser pour valider la clé Wifi. La valeur de ce challenge est une chaine pseudo aléatoire de 128 octets.</p>
+<p>Le second message, envoyé par l’AP, va faire les actions suivantes : incrémenter le numéro de séquence pour le passer à 0x0002, et envoyer un paramètre taggué (id 16), qui correspond à un challenge que ma machine devra utiliser pour valider la clé Wifi. La valeur de ce challenge est une chaine pseudo aléatoire de 128 octets.</p>
 
 <p><img src="/assets/images/802-11/authentication_shared_msg2_wireshark.png" alt="Shared Authentication challenge Wireshark" /></p>
 
