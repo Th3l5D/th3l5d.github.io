@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Highway to serv</title>
+
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="canonical" href="http://localhost:4000/highway-to-serv">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+			<h2>Highway to serv</h2>
+<time>Apr 14, 2018</time>
+
+<p>Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.</p>
+
+<p>Comme vous êtes tous nuls dans ce domaine, on va reprendre les bases, et parler d’un des outils les plus connus dans le troubleshoot réseau : traceroute.</p>
+
+<p>Alors, pourquoi je vais parler de ça ?<br />
+Tout est parti d’une discussion au boulot dans laquelle je disais “Vous ne connaissez pas le secret de traceroute”. Au final, non, ils ne le connaissaient pas. Et je parie que vous non plus. C’est pour ça que j’ai eu envie d’écrire ce petit post.</p>
+
+<p>C’est parti !</p>
+
+<!--more-->
+
+<h3 id="la-théorie">La théorie</h3>
+
+<p>Spoiler alert : je vais prendre tout le monde pour des idiots et partir from scratch. Ceux qui veulent esquiver les explications générales, vous pouvez passer au chapitre suivant.</p>
+
+<p><strong>“Bon, traceroute, ça a l’air cool comme nom, mais ça sert à quoi ?”</strong></p>
+
+<p>En quelques mots, c’est un “GPS pour IP”. Ca permet de… tracer sa route en fait :)<br />
+L’utilité principale d’un traceroute, c’est de connaitre les équipements intermédiaires entre une machine source et une destination donnée. Par exemple, si je veux savoir le chemin qui me sépare de 8.8.8.8, je vais faire un bête :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  praha-4d-c1-vl55.masterinter.net (77.93.199.253)  0.734 ms  0.805 ms  0.896 ms
+ 2  vl1387.cr3.r1-8.dc1.4d.prg.masterinter.net (83.167.254.150)  0.213 ms  0.226 ms  0.216 ms
+ 3  72.14.214.168 (72.14.214.168)  0.364 ms  0.366 ms  0.394 ms
+ 4  108.170.245.33 (108.170.245.33)  0.273 ms  0.275 ms  0.273 ms
+ 5  216.239.43.73 (216.239.43.73)  0.298 ms 108.170.237.177 (108.170.237.177)  0.298 ms 216.239.62.183 (216.239.62.183)  1.239 ms
+ 6  google-public-dns-a.google.com (8.8.8.8)  0.188 ms *  0.244 ms
+</code></pre></div></div>
+
+<p>Si on regarde un peu plus précisément, on voit que je passe par les machines 77.93.199.253, puis par la 83.167.254.150, etc, pour arriver à la fin à la 8.8.8.8.</p>
+
+<p><strong>“OK, c’est cool, mais je m’en fous de ça moi, ça me sert à rien”</strong></p>
+
+<p>Bah oui, mais non jeune impertinent ! Laisse moi te montrer pourquoi tu es dans l’erreur.
+Imaginons un premier cas : tu n’as pas accès aux internets du web. Tu as rebooté ta box, mais rien n’y fait, ça ne fonctionne toujours pas. Et bien, un des tests à effectuer, c’est un traceroute, car ça te permettra de savoir où ça bloque.<br />
+En lancant la commande, tu pourras par exemple avoir ce retour :</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+connect: Le réseau n'est pas accessible
+</code></pre></div></div>
+
+<p>L’erreur est ici assez explicite, tu n’as pas accès au réseau. Peut-être as-tu oublié de brancher ton câble wifi ? Peut-être que ton DHCP ne te renvoie pas d’IP ? Peut-être que tu n’as pas de passerelle ? Dans tous les cas, tu n’iras pas loin et ton FAI n’y est pour rien.</p>
+
+<p>Tu pourras aussi avoir cet exemple :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  192.168.1.103 (192.168.1.103)  163.938 ms !H  163.824 ms !H  163.759 ms !H
+
+</code></pre></div></div>
+
+<p>Là, tu as bien accès au réseau car tu as une IP (la 192.168.1.103), mais tu ne vas pas plus loin. Un problème de passerelle à coup sûr.</p>
+
+<p>Bref, cela te permet de voir d’où vient le problème.</p>
+
+<p>Imaginons maintenant un second cas. Tu es un expert du pentest, et tu dois péter le réseau interne d’un client. En faisant un traceroute depuis le lan user, tu sauras les équipements intermédiaires, et tu pourras ainsi tenter des attaques sur ces équipements, mais connaitre les autres réseaux du lan, et tenter de faire du nmap dessus.</p>
+
+<p>Tu vois, jeune impertinent, que traceroute, c’est plutôt pratique. Maintenant, tu n’es plus dans l’erreur.</p>
+
+<h3 id="le-fonctionnement-technique">Le fonctionnement technique</h3>
+
+<p><strong>“Bon, ok, ça peut être marrant ton truc, mais comment ça fonctionne ?”</strong></p>
+
+<p>Ahhhh, c’est là qu’on va arriver dans le vif du sujet. Et c’est là que vous allez apprendre un truc ou deux.</p>
+
+<p>Pour comprendre le fonctionnement technique, il faut se pencher un peu sur la RFC IPv4. Ne vous inquiétez pas, elle est pas méchante comparée aux spec 802.11 ^^’
+Comme tout protocole, IP est normé et doit suivre un format spécifique qui est le suivant :</p>
+
+<p><img src="/assets/images/traceroute/ip.png" alt="En-tête IP" /></p>
+
+<p>Je vais expliquer rapidement tous les champs, et je m’attarderai ensuite sur le plus important par rapport au traceroute.</p>
+
+<ul>
+  <li>Version : indique la version du protocole. Ici, comme on est en IPv4, c’est “4”. Seems legit.</li>
+  <li>IHL : Internet Header Length : la taille de l’en-tête IP, qui ne comprend donc pas la taille du payload des couches OSI supérieures.</li>
+  <li>TOS : Type Of Service : permet de définir si un paquet doit être priorisé ou non. C’est de la QoS version light.</li>
+  <li>Total length : taille du datagramme, qui correspond à l’IHL + le payload. Attention, on ne compte pas les couches inférieures (la partie MAC par exemple). En général, je dis toujours paquet, peu importe la couche, mais là, j’ai bien utilisé le terme datagramme car la différence est importante. (un paquet, c’est totalité des couches, le datagramme non).</li>
+  <li>Identification : un ID quoi :)</li>
+  <li>Flags : Permet de savoir si le message envoyé est fragmenté en plusieurs paquets.</li>
+  <li>Fragment offset : permet de savoir à quelle partie du fragment d’un message correspond ce paquet. Evidemment, ça dépend du flag.</li>
+  <li>TTL : Time To Live : Temps avant que le paquet ne soit considéré comme périmé.</li>
+  <li>Protocole : indique le protocole de la couche supérieure (TCP, UDP, etc).</li>
+  <li>Header Checksum : un bête checksum pour valider que l’en-tête IP n’aie pas été corrompu durant le transport.</li>
+  <li>Source/Destination addresses : Les IP source et destination.</li>
+  <li>Options : bahhhh, des options quoi ^^ Ca permet d’ajouter des infos sur l’en-tête IP au besoin.</li>
+  <li>Padding : un paquet de 0 à la fin de l’en-tête IP, afin qu’il soit un multiple de 32.</li>
+</ul>
+
+<p>Peut-être que je ferais un article plus poussé sur IP un jour. Ou peut-être pas. En tout cas, vous voyez un peu l’idée du truc.<br />
+Mais revenons à nos moutons : le champ qui nous intéresse réellement ici est le TTL, et je vais donc expliquer plus précisément son fonctionnement.<br />
+C’est un champ codé sur 8 bits, qui peut donc aller de 0 à 255. Lorsque ma bécane envoie un paquet IP (soit la très grande majorité des paquets), mon OS ma mettre le champ TTL à une valeur donnée (ça dépend de l’OS, du kernel et du temps qu’il fait dehors), mais il ne faut pas qu’il soit trop petit, sous peine que le paquet n’arrive jamais à destination.</p>
+
+<p><strong>“Comment ça, ‘n’arrive jamais à destination’ ?”</strong></p>
+
+<p>Tu n’écoutes rien jeune impudent. J’ai dit quoi sur le TTL ? Hein ? J’ai dit quoi ? Que c’est le “temps avant que le paquet ne soit considéré comme périmé”. Avec un TTL trop court, ton paquet paquet sera bon pour la poubelle avant d’arriver à bon port.<br />
+A chaque machine intermédiaire, le TTL va être décrémenté d’un. Pour être plus précis, il va être décrémenté d’autant de secondes qu’il reste sur cette machine intérmédiaire. Mais dans la pratique, c’est toujours inférieur à la seconde, donc on réduit d’une seule unité.<br />
+Attention, quand je dit “machine intermédiaire”, ce ne sont pas TOUTES les machines intermédiaires. Ce sont toutes les machines intérmédiaires qui LISENT l’en-tête IP. Un switch par exemple, il s’en cogne de cet en-tête, puisqu’il s’arrête à la couche d’en dessous. Ainsi, on considère que les machines intermédiaires sont celles qui connectent des réseaux entre eux : les routeurs (ou assimilé).
+Pour info, le TTL a été mis en place pour éviter d’avoir des paquets qui tournent en boucle à l’infini.</p>
+
+<p><strong>“‘Qui tournent en boucle’ ?”</strong></p>
+
+<p>Exactement. Tu peux avoir des cas où un paquet est envoyé par un routeur A vers un routeur B et ledit routeur B le renvoie au routeur A. Si le TTL n’existait pas, les deux équipements se renverraient en permanence la balle (Qui à dit DoS ? :D )<br />
+Du coup, quand le TTL arrive à 0, il est tout simplement envoyé au cimetière des paquets (RIP).</p>
+
+<p><strong>“Ouais ouais, c’est cool ton histoire là, mais il est où le rapport ?”</strong></p>
+
+<p>Le rapport ? Et bien comme les routeurs sont gentils, ils nous préviennent quand un paquet est droppé à cause du TTL, grâce à un paquet ICMP, de <a href="https://fr.wikipedia.org/wiki/Internet_Control_Message_Protocol#Type_11_(temps_d%C3%A9pass%C3%A9)" target="_blank">type 11 et de code 0</a>. (Pour ceux qui ne connaissent pas trop ICMP, les types sont grosso modo l’équivalent des ports TCP ou UDP).</p>
+
+<p>Tu commences à voir le rapport, jeune éffronté ?<br />
+Imagine que j’envoie un paquet avec un TTL de 1. Quand il va arriver au premier équipement, le champ va être décrémenté. Il tombe donc à 0, le routeur va dropper le paquet et me prévenir via un ICMP/11/0 qu’il a exterminé le paquet. Comme ça, je connais la première machine intermédiaire.<br />
+Imagine ensuite que j’envoie un second paquet, avec un TTL de 2. Arrivé au premier équipement, le TTL passe à 1, puis est renvoyé ver le routeur suivant. Encore une fois le TTL est décrémenté et tombe à 0. Le second routeur va donc anihiler le paquet puis me prévenir.</p>
+
+<p>Ainsi en envoyant plusieurs paquets avec un TTL de plus en plus grand, on peut retrouver le chemin complet vers une machine.</p>
+
+<h3 id="les-outils">Les outils</h3>
+
+<p>Sur windows, c’est simple, on a tracert, épicétou.<br />
+Sur linux par contre, on a traceroute et tracepath. Et c’est en partie pour cela que je me suis mis à écrire cet article : c’est quoi la différence entre les 2 ?!</p>
+
+<p>En fait, traceroute peut avoir besoin d’ouvrir des raw sockets. Et les raw sockets, en général, ça a besoin des droits root. A l’inverse, tracepath n’ouvre pas ses sockets en raw, donc pas besoin du root :)
+A coté de ça, en regardant les sources et les man, on voit 2 choses : traceroute a clairement plus d’options que tracepath, mais ce dernier vérifie (et modifie au besoin) la MTU (Maximum Transmission Unit, la taille maximum qu’un paquet peut avoir). Pratique quand on passe sur de l’IPSEC ou du MPLS.</p>
+
+<p>Sinon, bahhhh, ça va pas beaucoup plus loin en fait au niveau différences. ^^’
+C’est un peu décevant, je vois pas trop l’intéret d’avoir deux outils quasiment identiques (surtout qu’ils sont tous les deux installés par défaut dans certaines distros).</p>
+
+<p>Au passage, s’il y a une option a connaitre sur ces outils, c’es le “-n” (“-d” sur windows) qui évite de faire une résolution DNS inverse sur les IP trouvées. Parce qu’honnêtement, je n’ai jamais eu besoin des NDD associées aux IP pendant un traceroute.</p>
+
+<h3 id="le-secret-de-traceroute-">Le secret de traceroute :)</h3>
+
+<p>Au début du post, j’ai parlé d’un secret, et puis plus j’ai avancé dans l’article, plus je me suis rendu compte qu’il était quasiment inutile ^^’
+Quand on fait un traceroute, à moins de s’y intéresser vraiment, on sait pas trop comment ça fonctionne <em>under the hood</em>. On sait que ça utilise le TTL, mais c’est tout.<br />
+Ce qu’il faut prendre en compte, c’est que le protocole IP a besoin pour fonctionner du champ Protocol (qui, pour rappel, définit le proto de niveau supérieur). Ce champ est donc un ID qui renvoie à une <a href="https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml">liste définie par l’IANA</a>.
+Et bah, le secret, c’est que sur windows, ça utilise de l’ICMP (ID 1) et sur linux de l’UDP (ID 17) :D</p>
+
+<p><strong>“Quoi, c’est tout ? C’est juste ça ton secret ?”</strong></p>
+
+<p>Bah oui ^^’</p>
+
+<p>J’ai cherché une explication plus détaillée sur le fait d’utiliser ICMP sur win et UDP sur nux, mais je n’ai trouvé de solution qui me plaise.<br />
+L’idée la plus probable, c’est que comme nux a besoin d’être root pour envoyer des paquets ICMP (si, si, promis, regardez le setuid de la commande ping :) ), les devs de traceroute ont utilisé de l’UDP pour éviter d’avoir à setuid le programme. Mais bon, c’est un peu naze comme explication, puisqu’il existe une option pour faire un traceroute avec de l’ICMP (d’où les raw sockets dont je parlais plus haut.), et donc, faut avoir les droits root. De plus, ping est setuid, donc bon, pourquoi ils auraient pas pu setuid traceroute aussi.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Voilà, petit article rapide, qui permet de comprendre un peu ce qu’est traceroute et son intérêt. J’espère qu’il vous aura fait prendre que le réseau cétrocoul et que vous voulez tous devenir ingé réseau maintenant :D<br />
+Plus sérieusement, si vous avez appris quelque chose, c’est le plus important ;)</p>
+
+<p>Oh, et si jamais quelqu’un sait réellement pourquoi UDP par défaut sur nux, qu’il n’hésite pas à me le dire !</p>
+
+<p>Enjoy</p>
+
+<p>The lsd</p>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://lsdsecdaemon.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017</p>
+</footer>
+
+	</main>
+</body>
+
+</html>
