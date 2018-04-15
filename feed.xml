@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2018-04-14T19:04:08+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">Highway to serv</title><link href="http://lsdsecdaemon.com/highway-to-serv" rel="alternate" type="text/html" title="Highway to serv" /><published>2018-04-14T18:00:00+02:00</published><updated>2018-04-14T18:00:00+02:00</updated><id>http://lsdsecdaemon.com/chacun-sa-route</id><content type="html" xml:base="http://lsdsecdaemon.com/highway-to-serv">&lt;p&gt;Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2018-04-15T17:07:16+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">Highway to serv</title><link href="http://lsdsecdaemon.com/highway-to-serv" rel="alternate" type="text/html" title="Highway to serv" /><published>2018-04-14T18:00:00+02:00</published><updated>2018-04-14T18:00:00+02:00</updated><id>http://lsdsecdaemon.com/chacun-sa-route</id><content type="html" xml:base="http://lsdsecdaemon.com/highway-to-serv">&lt;p&gt;Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.&lt;/p&gt;
 
 &lt;p&gt;Comme vous êtes tous nuls dans ce domaine, on va reprendre les bases, et parler d’un des outils les plus connus dans le troubleshoot réseau : traceroute.&lt;/p&gt;
 
@@ -52,9 +52,9 @@ traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
 
 &lt;p&gt;Là, tu as bien accès au réseau car tu as une IP (la 192.168.1.103), mais tu ne vas pas plus loin. Un problème de passerelle à coup sûr.&lt;/p&gt;
 
-&lt;p&gt;Bref, cela te permet de voir d’où vient le problème.&lt;/p&gt;
+&lt;p&gt;Bref, cela te permet de voir d’où vient le souci.&lt;/p&gt;
 
-&lt;p&gt;Imaginons maintenant un second cas. Tu es un expert du pentest, et tu dois péter le réseau interne d’un client. En faisant un traceroute depuis le lan user, tu sauras les équipements intermédiaires, et tu pourras ainsi tenter des attaques sur ces équipements, mais connaitre les autres réseaux du lan, et tenter de faire du nmap dessus.&lt;/p&gt;
+&lt;p&gt;Imaginons maintenant un second cas. Tu es un expert du pentest, et tu dois péter le réseau interne d’un client. En faisant un traceroute depuis le lan user, tu sauras les équipements intermédiaires, et tu pourras ainsi tenter des attaques sur ces équipements, et aussi connaitre les autres réseaux du lan, et tenter de faire du nmap dessus.&lt;/p&gt;
 
 &lt;p&gt;Tu vois, jeune impertinent, que traceroute, c’est plutôt pratique. Maintenant, tu n’es plus dans l’erreur.&lt;/p&gt;
 
@@ -64,7 +64,7 @@ traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
 
 &lt;p&gt;Ahhhh, c’est là qu’on va arriver dans le vif du sujet. Et c’est là que vous allez apprendre un truc ou deux.&lt;/p&gt;
 
-&lt;p&gt;Pour comprendre le fonctionnement technique, il faut se pencher un peu sur la RFC IPv4. Ne vous inquiétez pas, elle est pas méchante comparée aux spec 802.11 ^^’
+&lt;p&gt;Pour comprendre le fonctionnement technique, il faut se pencher un peu sur la RFC IPv4. Ne vous inquiétez pas, elle est pas méchante comparée aux spec 802.11 ^^’&lt;br /&gt;
 Comme tout protocole, IP est normé et doit suivre un format spécifique qui est le suivant :&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/images/traceroute/ip.png&quot; alt=&quot;En-tête IP&quot; /&gt;&lt;/p&gt;
@@ -89,7 +89,7 @@ Comme tout protocole, IP est normé et doit suivre un format spécifique qui est
 
 &lt;p&gt;Peut-être que je ferais un article plus poussé sur IP un jour. Ou peut-être pas. En tout cas, vous voyez un peu l’idée du truc.&lt;br /&gt;
 Mais revenons à nos moutons : le champ qui nous intéresse réellement ici est le TTL, et je vais donc expliquer plus précisément son fonctionnement.&lt;br /&gt;
-C’est un champ codé sur 8 bits, qui peut donc aller de 0 à 255. Lorsque ma bécane envoie un paquet IP (soit la très grande majorité des paquets), mon OS ma mettre le champ TTL à une valeur donnée (ça dépend de l’OS, du kernel et du temps qu’il fait dehors), mais il ne faut pas qu’il soit trop petit, sous peine que le paquet n’arrive jamais à destination.&lt;/p&gt;
+C’est un champ codé sur 8 bits, qui peut donc aller de 0 à 255. Lorsque ma bécane envoie un paquet IP (soit la très grande majorité des paquets), mon OS va mettre le champ TTL à une valeur donnée (ça dépend de l’OS, du kernel et du temps qu’il fait dehors), mais il ne faut pas qu’il soit trop petit, sous peine que le paquet n’arrive jamais à destination.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;“Comment ça, ‘n’arrive jamais à destination’ ?”&lt;/strong&gt;&lt;/p&gt;
 
@@ -118,13 +118,13 @@ Imagine ensuite que j’envoie un second paquet, avec un TTL de 2. Arrivé au pr
 &lt;p&gt;Sur windows, c’est simple, on a tracert, épicétou.&lt;br /&gt;
 Sur linux par contre, on a traceroute et tracepath. Et c’est en partie pour cela que je me suis mis à écrire cet article : c’est quoi la différence entre les 2 ?!&lt;/p&gt;
 
-&lt;p&gt;En fait, traceroute peut avoir besoin d’ouvrir des raw sockets. Et les raw sockets, en général, ça a besoin des droits root. A l’inverse, tracepath n’ouvre pas ses sockets en raw, donc pas besoin du root :)
+&lt;p&gt;En fait, traceroute peut avoir besoin d’ouvrir des raw sockets. Et les raw sockets, en général, ça a besoin des droits root. A l’inverse, tracepath n’ouvre pas ses sockets en raw, donc pas besoin du root :)&lt;br /&gt;
 A coté de ça, en regardant les sources et les man, on voit 2 choses : traceroute a clairement plus d’options que tracepath, mais ce dernier vérifie (et modifie au besoin) la MTU (Maximum Transmission Unit, la taille maximum qu’un paquet peut avoir). Pratique quand on passe sur de l’IPSEC ou du MPLS.&lt;/p&gt;
 
 &lt;p&gt;Sinon, bahhhh, ça va pas beaucoup plus loin en fait au niveau différences. ^^’
 C’est un peu décevant, je vois pas trop l’intéret d’avoir deux outils quasiment identiques (surtout qu’ils sont tous les deux installés par défaut dans certaines distros).&lt;/p&gt;
 
-&lt;p&gt;Au passage, s’il y a une option a connaitre sur ces outils, c’es le “-n” (“-d” sur windows) qui évite de faire une résolution DNS inverse sur les IP trouvées. Parce qu’honnêtement, je n’ai jamais eu besoin des NDD associées aux IP pendant un traceroute.&lt;/p&gt;
+&lt;p&gt;Au passage, s’il y a une option à connaitre sur ces outils, c’es le “-n” (“-d” sur windows) qui évite de faire une résolution DNS inverse sur les IP trouvées. Parce qu’honnêtement, je n’ai jamais eu besoin des NDD associées aux IP pendant un traceroute.&lt;/p&gt;
 
 &lt;h3 id=&quot;le-secret-de-traceroute-&quot;&gt;Le secret de traceroute :)&lt;/h3&gt;
 
@@ -135,10 +135,11 @@ Et bah, le secret, c’est que sur windows, ça utilise de l’ICMP (ID 1) et su
 
 &lt;p&gt;&lt;strong&gt;“Quoi, c’est tout ? C’est juste ça ton secret ?”&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;Bah oui ^^’&lt;/p&gt;
+&lt;p&gt;Bah oui ^^’
+Et le truc dans l’histoire, c’est qu’avant d’écrire cet article, je trouvais ça marrant, mais au final, c’est totalement inutile puisqu’on se sert d’un champ du proto IP pour cet outil, donc au final, peu importe la couche supérieure, ça ne change absolument rien (en fait si, les firewalls auraient fait la gueule avec des trucs exotiques).&lt;/p&gt;
 
 &lt;p&gt;J’ai cherché une explication plus détaillée sur le fait d’utiliser ICMP sur win et UDP sur nux, mais je n’ai trouvé de solution qui me plaise.&lt;br /&gt;
-L’idée la plus probable, c’est que comme nux a besoin d’être root pour envoyer des paquets ICMP (si, si, promis, regardez le setuid de la commande ping :) ), les devs de traceroute ont utilisé de l’UDP pour éviter d’avoir à setuid le programme. Mais bon, c’est un peu naze comme explication, puisqu’il existe une option pour faire un traceroute avec de l’ICMP (d’où les raw sockets dont je parlais plus haut.), et donc, faut avoir les droits root. De plus, ping est setuid, donc bon, pourquoi ils auraient pas pu setuid traceroute aussi.&lt;/p&gt;
+L’idée la plus probable, c’est que comme nux a besoin d’être root pour envoyer des paquets ICMP (si, si, promis, regardez le setuid de la commande ping :) ), les devs de traceroute ont utilisé de l’UDP pour éviter d’avoir à setuid le programme. Mais bon, c’est un peu naze comme explication, puisqu’il existe une option pour faire un traceroute avec de l’ICMP (d’où les raw sockets dont je parlais plus haut.), et donc, faut avoir les droits root. De plus, ping est setuid, donc bon, les mecs de chez linux auraient très bien setuid traceroute aussi.&lt;/p&gt;
 
 &lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
 
@@ -149,7 +150,11 @@ Plus sérieusement, si vous avez appris quelque chose, c’est le plus important
 
 &lt;p&gt;Enjoy&lt;/p&gt;
 
-&lt;p&gt;The lsd&lt;/p&gt;</content><author><name></name></author><summary type="html">Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau. Comme vous êtes tous nuls dans ce domaine, on va reprendre les bases, et parler d’un des outils les plus connus dans le troubleshoot réseau : traceroute. Alors, pourquoi je vais parler de ça ? Tout est parti d’une discussion au boulot dans laquelle je disais “Vous ne connaissez pas le secret de traceroute”. Au final, non, ils ne le connaissaient pas. Et je parie que vous non plus. C’est pour ça que j’ai eu envie d’écrire ce petit post. C’est parti !</summary></entry><entry><title type="html">Le Wifi, comment ça marche 2/2</title><link href="http://lsdsecdaemon.com/wifi-connection-2" rel="alternate" type="text/html" title="Le Wifi, comment ça marche 2/2" /><published>2018-02-14T19:00:00+01:00</published><updated>2018-02-14T19:00:00+01:00</updated><id>http://lsdsecdaemon.com/Wifi-comment-ca-marche2</id><content type="html" xml:base="http://lsdsecdaemon.com/wifi-connection-2">&lt;p&gt;Dans la &lt;a href=&quot;http://lsdsecdaemon.com/wifi-connection&quot; target=&quot;_blank&quot;&gt;première partie&lt;/a&gt;, on va vu comment fonctionnait les probes, et l’authentification, mais il reste encore deux ou trois trucs à comprendre avant de pouvoir surfer tranquillement sur google.&lt;br /&gt;
+&lt;p&gt;The lsd&lt;/p&gt;
+
+&lt;h3 id=&quot;liens&quot;&gt;Liens&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/Th3l5D/lame-socket-dispatcher&quot;&gt;Lame-Socket-Dispatcher&lt;/a&gt; : un script en python pour faire un traceroute. C’est un POC, rien de plus.&lt;/p&gt;</content><author><name></name></author><summary type="html">Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau. Comme vous êtes tous nuls dans ce domaine, on va reprendre les bases, et parler d’un des outils les plus connus dans le troubleshoot réseau : traceroute. Alors, pourquoi je vais parler de ça ? Tout est parti d’une discussion au boulot dans laquelle je disais “Vous ne connaissez pas le secret de traceroute”. Au final, non, ils ne le connaissaient pas. Et je parie que vous non plus. C’est pour ça que j’ai eu envie d’écrire ce petit post. C’est parti !</summary></entry><entry><title type="html">Le Wifi, comment ça marche 2/2</title><link href="http://lsdsecdaemon.com/wifi-connection-2" rel="alternate" type="text/html" title="Le Wifi, comment ça marche 2/2" /><published>2018-02-14T19:00:00+01:00</published><updated>2018-02-14T19:00:00+01:00</updated><id>http://lsdsecdaemon.com/Wifi-comment-ca-marche2</id><content type="html" xml:base="http://lsdsecdaemon.com/wifi-connection-2">&lt;p&gt;Dans la &lt;a href=&quot;http://lsdsecdaemon.com/wifi-connection&quot; target=&quot;_blank&quot;&gt;première partie&lt;/a&gt;, on va vu comment fonctionnait les probes, et l’authentification, mais il reste encore deux ou trois trucs à comprendre avant de pouvoir surfer tranquillement sur google.&lt;br /&gt;
 LET’S GO !&lt;/p&gt;
 
 &lt;!--more--&gt;
