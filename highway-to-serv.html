@@ -166,6 +166,22 @@ Imagine ensuite que j’envoie un second paquet, avec un TTL de 2. Arrivé au pr
 
 <p>Ainsi en envoyant plusieurs paquets avec un TTL de plus en plus grand, on peut retrouver le chemin complet vers une machine.</p>
 
+<p>Au passage, suite à l’écriture de cet article, on m’a demandé pourquoi on pouvait voir des étoiles dans certains retours traceroute, dans ce genre là :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>traceroute -n poul.pe
+traceroute to poul.pe (91.121.196.223), 30 hops max, 60 byte packets
+ 1  192.168.1.1  2.191 ms  2.239 ms  2.390 ms
+[...]
+ 8  94.23.122.146  53.839 ms  88.330 ms  88.112 ms
+ 9  * * *
+10  94.23.122.73  87.063 ms  87.058 ms  88.317 ms
+11  * * *
+12  * * *
+
+</code></pre></div></div>
+
+<p>En fait, c’est tout à fait logique. Si on regarde le détail de la <a href="https://tools.ietf.org/html/rfc792">RFC 792</a>, on voit ceci : “<em>If the gateway processing a datagram finds the time to live field is zero it must discard the datagram.  The gateway may also notify the source host via the time exceeded message.</em>”. Donc, les routeurs ne sont pas dans l’obligation de nous prévenir. Dans ce cas, traceroute sait qu’il y a un équipement, mais ne peut pas trouver son IP, puisque l’équipement ne répond rien. La même situation peut se produire si un firewall bloque le traceroute.</p>
+
 <h3 id="les-outils">Les outils</h3>
 
 <p>Sur windows, c’est simple, on a tracert, épicétou.<br />

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2018-04-15T17:07:16+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">Highway to serv</title><link href="http://lsdsecdaemon.com/highway-to-serv" rel="alternate" type="text/html" title="Highway to serv" /><published>2018-04-14T18:00:00+02:00</published><updated>2018-04-14T18:00:00+02:00</updated><id>http://lsdsecdaemon.com/chacun-sa-route</id><content type="html" xml:base="http://lsdsecdaemon.com/highway-to-serv">&lt;p&gt;Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.1">Jekyll</generator><link href="http://lsdsecdaemon.com/feed.xml" rel="self" type="application/atom+xml" /><link href="http://lsdsecdaemon.com/" rel="alternate" type="text/html" /><updated>2018-04-17T09:56:54+02:00</updated><id>http://lsdsecdaemon.com/</id><title type="html">Lsd Security Daemon</title><subtitle>LsdSecDaemon : Blog axé sur la sécurité, mais pas que.</subtitle><entry><title type="html">Highway to serv</title><link href="http://lsdsecdaemon.com/highway-to-serv" rel="alternate" type="text/html" title="Highway to serv" /><published>2018-04-14T18:00:00+02:00</published><updated>2018-04-14T18:00:00+02:00</updated><id>http://lsdsecdaemon.com/chacun-sa-route</id><content type="html" xml:base="http://lsdsecdaemon.com/highway-to-serv">&lt;p&gt;Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.&lt;/p&gt;
 
 &lt;p&gt;Comme vous êtes tous nuls dans ce domaine, on va reprendre les bases, et parler d’un des outils les plus connus dans le troubleshoot réseau : traceroute.&lt;/p&gt;
 
@@ -112,6 +112,22 @@ Imagine que j’envoie un paquet avec un TTL de 1. Quand il va arriver au premie
 Imagine ensuite que j’envoie un second paquet, avec un TTL de 2. Arrivé au premier équipement, le TTL passe à 1, puis est renvoyé ver le routeur suivant. Encore une fois le TTL est décrémenté et tombe à 0. Le second routeur va donc anihiler le paquet puis me prévenir.&lt;/p&gt;
 
 &lt;p&gt;Ainsi en envoyant plusieurs paquets avec un TTL de plus en plus grand, on peut retrouver le chemin complet vers une machine.&lt;/p&gt;
+
+&lt;p&gt;Au passage, suite à l’écriture de cet article, on m’a demandé pourquoi on pouvait voir des étoiles dans certains retours traceroute, dans ce genre là :&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;traceroute -n poul.pe
+traceroute to poul.pe (91.121.196.223), 30 hops max, 60 byte packets
+ 1  192.168.1.1  2.191 ms  2.239 ms  2.390 ms
+[...]
+ 8  94.23.122.146  53.839 ms  88.330 ms  88.112 ms
+ 9  * * *
+10  94.23.122.73  87.063 ms  87.058 ms  88.317 ms
+11  * * *
+12  * * *
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;En fait, c’est tout à fait logique. Si on regarde le détail de la &lt;a href=&quot;https://tools.ietf.org/html/rfc792&quot;&gt;RFC 792&lt;/a&gt;, on voit ceci : “&lt;em&gt;If the gateway processing a datagram finds the time to live field is zero it must discard the datagram.  The gateway may also notify the source host via the time exceeded message.&lt;/em&gt;”. Donc, les routeurs ne sont pas dans l’obligation de nous prévenir. Dans ce cas, traceroute sait qu’il y a un équipement, mais ne peut pas trouver son IP, puisque l’équipement ne répond rien. La même situation peut se produire si un firewall bloque le traceroute.&lt;/p&gt;
 
 &lt;h3 id=&quot;les-outils&quot;&gt;Les outils&lt;/h3&gt;
 
