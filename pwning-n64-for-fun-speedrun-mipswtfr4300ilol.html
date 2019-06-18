@@ -158,7 +158,7 @@ Par exemple :</p>
   <li><code class="highlighter-rouge">c.eq.d</code></li>
 </ul>
 
-<p>font parties de la même famille. Il faut les lire comme <code class="highlighter-rouge"><b>C</b>ompare | <b>L<b>ess <b>T</b>han/<b>G</b>reater <b>T</b>han/<b>EQ</b>ual register X, register Y | as <b>S</b>ingle/<b>D</b>ouble</code>.</p>
+<p>font parties de la même famille. Il faut les lire comme <code class="highlighter-rouge"><b>C</b>ompare | <b>L</b>ess <b>T</b>han/<b>G</b>reater <b>T</b>han/<b>EQ</b>ual register X, register Y | as <b>S</b>ingle/<b>D</b>ouble</code>.</p>
 
 <p>De ce que j’en sais (c’est à dire pas tant que ça), on ne peut pas travailler sur des registres généraux et floating en même temps. Faire un <code class="highlighter-rouge">multu t0, f4</code> n’est -à priori- pas possible.<br />
 Il faut donc utiliser des instructions pour envoyer les valeurs d’un registre général vers un floating (LWC, MTC* par exemple). Une fois que les opérations coproc sont faites, on utilise d’autres instructions (SWC, MFC**) pour récupérer une valeur d’un registre floating.</p>
