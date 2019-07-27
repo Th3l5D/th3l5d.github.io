@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title></title>
+
+	<link rel="stylesheet" href="https://lsdsecdaemon.com//css/main.css">
+	<link rel="canonical" href="https://lsdsecdaemon.com/game-hacking-links-repo.html">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script>
+// Oui, ce code est moche. Mais je m'en balec, le javascript est moche by design.
+var list_tags = Array();
+
+
+function searchTags(v)
+{
+	current_tag = v.textContent || v.innerText;
+	current_tag = current_tag.toLowerCase();
+	var tag_filtered = document.querySelectorAll('.'+current_tag);
+
+	if (list_tags.includes(current_tag))
+	{
+		for(var j=0; j<tag_filtered.length; j++)
+		{
+			tag_filtered[j].classList.remove('on');
+		}
+		list_tags.indexOf(current_tag) !== -1 && list_tags.splice(list_tags.indexOf(current_tag), 1)
+	}
+	else
+	{
+		for(var j=0; j<tag_filtered.length; j++)
+		{
+			tag_filtered[j].classList.add('on');
+		}
+		list_tags.push(current_tag);
+	}
+
+    var tagsNodes = document.querySelectorAll('.tags');
+    for(var i=0; i<tagsNodes.length; i++){
+        var tagName = tagsNodes[i].textContent || tagsNodes[i].innerText;
+        if (list_tags.length == 0)
+        {
+	        	tagsNodes[i].parentElement.style.display = '';
+        }
+        else
+        {
+        	if (!list_tags.every(item => tagName.toLowerCase().includes(item)))
+        	{
+
+	        	tagsNodes[i].parentElement.style.display = 'none';
+        	}
+        	else
+        	{
+        		tagsNodes[i].parentElement.style.display = '';
+        	}
+		}
+    }
+}
+
+</script>
+<style>
+	.tag {
+	border: 1px solid #d18400;
+	border-radius: 8px;
+	padding: 3px;        
+	display:inline-block;
+	line-height:20px;
+	cursor: pointer;
+	user-select: none;
+	margin: 3px;
+	}
+	.on {
+	background: #ffc869;
+	}
+	.link
+	{
+		border:1px solid grey;
+		width: 100%;
+		display: inline-block;
+		margin-bottom: 10px;
+		background-color: #eee;
+	}
+	.infos
+	{
+		border-bottom: 1px solid grey;
+	}
+	.nom
+	{
+		border-bottom: 1px solid grey;
+		font-weight: bold;
+		background-color: #ccc;
+	}
+	.lien
+	{
+		border-bottom: 1px solid grey;
+	}
+	.tags
+	{
+		display: inline-block;
+	}
+</style>
+
+
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'https://lsdsecdaemon.com//assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="https://lsdsecdaemon.com//assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+			<h2>Game Hacking Links & Repos</h2>
+			Cette page recense les ressources li&eacute;es &agrave; tout ce qui Game Hacking au sens large, aussi bien sur console que PC, smartphone, etc. Evidemment, pas de ressources ill&eacute;gales ici (crack requests, etc). Pour ajouter une ressource, je suis dispo sur les canaux de communications list&eacute; sur la page <a href="/about/">About</a>.<br /><br />Enjoy<br /><br />The lsd<br /><br />Tags : 
+
+<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+<div class="tag re" onclick="searchTags(this);">Re</div>
+
+<div class="tag mariokart" onclick="searchTags(this);">Mariokart</div>
+
+<div class="tag mips" onclick="searchTags(this);">Mips</div>
+
+<div class="tag mustread" onclick="searchTags(this);">Mustread</div>
+
+<div class="tag general" onclick="searchTags(this);">General</div>
+
+<div class="tag functionrefs" onclick="searchTags(this);">Functionrefs</div>
+
+<div class="tag harwdare" onclick="searchTags(this);">Harwdare</div>
+
+<div class="tag asm" onclick="searchTags(this);">Asm</div>
+
+<div class="tag blog" onclick="searchTags(this);">Blog</div>
+
+<div class="tag sote" onclick="searchTags(this);">Sote</div>
+
+<div class="tag filespec" onclick="searchTags(this);">Filespec</div>
+
+<br /><br />
+
+<h3>N64</h3>
+
+<div class="link">
+
+	<div class="nom"> intro au re n64</div>
+
+	<div class="infos">Une intro basique au re d'un jeu n64, donnant principalement des pistes pour commencer. basique, mais bien pour d&eacute;buter </div>
+
+	<div class="lien"><a target="_blank" href="https://www.retroreversing.com/N64Reversing">www.retroreversing.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag RE" onclick="searchTags(this);">Re</div>
+
+		<div class="tag general" onclick="searchTags(this);">General</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> file spec </div>
+
+	<div class="infos"> post d'un forum expliquant une partie du format de fichier d'un exe lisible par une n64 </div>
+
+	<div class="lien"><a target="_blank" href="http://www.emutalk.net/threads/54892-File-spec-for-N64-ROM-formats?p=451757&viewfull=1#post451757">www.emutalk.net</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag fileSpec" onclick="searchTags(this);">Filespec</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> shoutwiki</div>
+
+	<div class="infos"> wiki d&eacute;di&eacute; au reverse n64. nombreuses ressources dispos, must read </div>
+
+	<div class="lien"><a target="_blank" href="http://en64.shoutwiki.com/wiki/Main_Page">en64.shoutwiki.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag general" onclick="searchTags(this);">General</div>
+
+		<div class="tag MustRead" onclick="searchTags(this);">Mustread</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> mips instruction set</div>
+
+	<div class="infos">Les principaux opcodes asm de l'archi mips, utilis&eacute; par la n64 </div>
+
+	<div class="lien"><a target="_blank" href="https://github.com/MIPT-ILab/mipt-mips/wiki/MIPS-Instruction-Set">github.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag mips" onclick="searchTags(this);">Mips</div>
+
+		<div class="tag asm" onclick="searchTags(this);">Asm</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> jaytheham - blog</div>
+
+	<div class="infos">Blog d'un reverser n64, sur le reverse d'un jeu de courses. quelques infos utiles </div>
+
+	<div class="lien"><a target="_blank" href="http://jaytheham.com/tink/">jaytheham.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag blog" onclick="searchTags(this);">Blog</div>
+
+		<div class="tag general" onclick="searchTags(this);">General</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> the cutting room floor</div>
+
+	<div class="infos">The cutting room floor recense les textes cach&eacute;s, mode debugs, etc de nombreux jeux</div>
+
+	<div class="lien"><a target="_blank" href="https://tcrf.net/Star_Wars:_Shadows_of_the_Empire_(Nintendo_64)">tcrf.net</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag SOTE" onclick="searchTags(this);">Sote</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> mario kart 64 re</div>
+
+	<div class="infos">Ressources sur tout ce qui est modification des textures, courses, etc de mario kart 64</div>
+
+	<div class="lien"><a target="_blank" href="https://github.com/RenaKunisaki/mariokart64/wiki">github.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag MarioKart" onclick="searchTags(this);">Mariokart</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> docs confidentielles n64</div>
+
+	<div class="infos">Nombreuses docs sur le fonctionnement de la n64, aussi bien hw que sw</div>
+
+	<div class="lien"><a target="_blank" href="https://ultra64.ca/resources/documentation/#">ultra64.ca</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag MustRead" onclick="searchTags(this);">Mustread</div>
+
+		<div class="tag Harwdare" onclick="searchTags(this);">Harwdare</div>
+
+		<div class="tag FunctionRefs" onclick="searchTags(this);">Functionrefs</div>
+
+	</div>
+
+	</div>
+
+<div class="link">
+
+	<div class="nom"> ressources mips</div>
+
+	<div class="infos">Nombreuses ressources sur le mips et sur le fonctionnement de la n64, aussi bien hw que sw</div>
+
+	<div class="lien"><a target="_blank" href="http://infrid.com/rcp64/documents.php">infrid.com</a>
+
+</div>
+
+	<div class="tags">
+
+				<div class="tag n64" onclick="searchTags(this);">N64</div>
+
+		<div class="tag MustRead" onclick="searchTags(this);">Mustread</div>
+
+		<div class="tag Harwdare" onclick="searchTags(this);">Harwdare</div>
+
+		<div class="tag FunctionRefs" onclick="searchTags(this);">Functionrefs</div>
+
+		<div class="tag mips" onclick="searchTags(this);">Mips</div>
+
+		<div class="tag asm" onclick="searchTags(this);">Asm</div>
+
+		<div class="tag Harwdare" onclick="searchTags(this);">Harwdare</div>
+
+	</div>
+
+	</div>
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017-2019</p>
+</footer>
+
+	</main>
+</body>
+
+</html>
