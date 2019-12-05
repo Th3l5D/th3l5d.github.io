@@ -137,3 +137,7 @@ th {
   border-style: solid;
   padding: 5px;
 }
+
+thead {
+  background-color: #E3E6E8;
+}
