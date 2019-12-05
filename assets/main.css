@@ -468,3 +468,20 @@ pre {
     color: #008080; }
   .highlight .il {
     color: #099; }
+
+table {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-collapse: collapse;
+  border-width: 1px;
+  border-color: #D1D1D1;
+  border-style: solid;
+  color: #000000;
+}
+
+th {
+  border-width: 1px;
+  border-color: #D1D1D1;
+  border-style: solid;
+  padding: 5px;
+}
