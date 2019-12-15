@@ -147,3 +147,5 @@ thead {
   background-color: #E3E6E8;
 }
  
+tr:nth-child(even) {background: #eee}
+
