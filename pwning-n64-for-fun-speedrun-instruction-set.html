@@ -324,9 +324,9 @@ Mais LUI n’a pas besoin de paramètre Source. Du coup, peu importe ce qu’on 
     </tr>
     <tr>
       <td>JAL Imm</td>
-      <td>$RA = addr JAL+8; Goto Imm</td>
       <td>0x03</td>
       <td>N/A</td>
+      <td>$RA = addr JAL+8; Goto Imm</td>
       <td>Jump And Link. J’en ai assez parlé dans l’article précédent. Imm est codé sur 26 bits</td>
     </tr>
     <tr>
@@ -426,8 +426,8 @@ Il y en a un paquet, mais je ne vais pas mettre les moins utilisées, ça sert �
       <td>Un AND classique</td>
     </tr>
     <tr>
-      <td>ANDI $dst, $src1, Imm</td>
-      <td>$dst = $src1 &amp; Imm</td>
+      <td>ANDI $dst, $src, Imm</td>
+      <td>$dst = $src &amp; Imm</td>
       <td>0x0C</td>
       <td>N/A</td>
       <td>Un AND classique avec un Immediate</td>
@@ -440,8 +440,8 @@ Il y en a un paquet, mais je ne vais pas mettre les moins utilisées, ça sert �
       <td>Un OR classique</td>
     </tr>
     <tr>
-      <td>ORI $dst, $src1, Imm</td>
-      <td>$dst = $src1 | Imm</td>
+      <td>ORI $dst, $src, Imm</td>
+      <td>$dst = $src | Imm</td>
       <td>0x0D</td>
       <td>N/A</td>
       <td>Un OR classique avec un Immediate</td>
@@ -454,8 +454,8 @@ Il y en a un paquet, mais je ne vais pas mettre les moins utilisées, ça sert �
       <td>Un XOR classique</td>
     </tr>
     <tr>
-      <td>XORI $dst, $src1, Imm</td>
-      <td>$dst = $src1 ^ Imm</td>
+      <td>XORI $dst, $src, Imm</td>
+      <td>$dst = $src ^ Imm</td>
       <td>0x0E</td>
       <td>N/A</td>
       <td>Un XOR classique avec un Immediate</td>
@@ -588,7 +588,7 @@ tldr : ça remplace le flag Zero sur x86.</p>
 
 <h3 id="le-coprocesseur">Le coprocesseur</h3>
 
-<p>Comme je l’ai dit dans mon précédent blogpost, il existe sur MIPS un coprocesseur qui gère tout ce qui est nombres flotants (FP). Ce coproc a un instruction set dédié, et totalement différent de ce qu’on croise d’habitude.<br />
+<p>Comme je l’ai dit dans mon précédent blogpost, il existe sur MIPS un coprocesseur qui gère tout ce qui est nombres flottants (FP). Ce coproc a un instruction set dédié, et totalement différent de ce qu’on croise d’habitude.<br />
 Globalement, il n’est pas là pour toute “l’intelligence” du programme, mais juste pour la partie calcul des floating. Du coup, le programme principal lui passe les datas, le coproc va effectuer ses calculs et redonner les infos au proc principal. Pour lui envoyer les données, on utilise les fonctions suivantes :</p>
 
 <table>
@@ -601,34 +601,34 @@ Globalement, il n’est pas là pour toute “l’intelligence” du programme, 
   </thead>
   <tbody>
     <tr>
-      <td>mtc1 $src, $dst</td>
+      <td>MTC1 $src, $dst</td>
       <td>$dst = $src</td>
       <td>Move To Coproc 1. La source est un registre général, et la destination un registre floating. Le 1 indique ici qu’on déplace vers le coproc 1. On pourrait virtuellement mettre mtc2 pour déplacer vers le coproc 2**</td>
     </tr>
     <tr>
-      <td>mfc1 $src, $dst</td>
+      <td>MFC1 $src, $dst</td>
       <td>$dst = $src</td>
-      <td>Move From Coproc 1. C’est l’inverse du mtc1</td>
+      <td>Move From Coproc 1. C’est l’inverse du MTC1</td>
     </tr>
     <tr>
-      <td>lwc1 $dst, Imm($src)</td>
+      <td>LWC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Load Word to Coproc 1. On met dans $dst (un registre Floating) la valeur mémoire de $src auquel on aura ajouté Imm. Ici, on charge un entier</td>
+      <td>Load Word to Coproc 1. On met dans $dst (un registre Floating) la valeur mémoire de $src (un registre général) auquel on aura ajouté Imm. Ici, on charge un entier</td>
     </tr>
     <tr>
-      <td>ldc1 $dst, Imm($src)</td>
+      <td>LDC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Load Double to Coproc 1. Comme lwc1, mais on charge ici un nombre flotant</td>
+      <td>Load Double to Coproc 1. Comme LWC1, mais on charge ici un nombre flottant</td>
     </tr>
     <tr>
-      <td>swc1 $dst, Imm($src)</td>
+      <td>SWC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Store Word from Coproc 1. On met dans $dst (un registre général) la valeur mémoire de $src auquel on aura ajouté Imm. Ici, on charge un entier</td>
+      <td>Store Word from Coproc 1. On met dans $dst (un registre général) la valeur mémoire de $src (un registre floating) auquel on aura ajouté Imm. Ici, on charge un entier</td>
     </tr>
     <tr>
-      <td>sdc1 $dst, Imm($src)</td>
+      <td>SDC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Store Double from Coproc 1. Comme swc1, mais on charge ici un nombre flotant</td>
+      <td>Store Double from Coproc 1. Comme SWC1, mais on charge ici un nombre flottant</td>
     </tr>
   </tbody>
 </table>
@@ -651,27 +651,27 @@ Les paramètres sont notés X et Y dans le listing suivant.</p>
   </thead>
   <tbody>
     <tr>
-      <td>add.X $dst, $src1, $src2</td>
+      <td>ADD.X $dst, $src1, $src2</td>
       <td>X($dst) = X($src1) + X($src2)</td>
       <td>Une addition quoi…</td>
     </tr>
     <tr>
-      <td>cvt.X1.X2 $dst, $src</td>
+      <td>CVT.X1.X2 $dst, $src</td>
       <td>X1 $dst = X2($src)</td>
       <td>conversion entre deux formats de nombres</td>
     </tr>
     <tr>
-      <td>c.Y.X $src1, $src2</td>
+      <td>C.Y.X $src1, $src2</td>
       <td>$cc = (X($src1) Y X($src2))</td>
       <td>comparaison entre deux nombres. Le résultat est mis dans le registre spécial Condition Code</td>
     </tr>
     <tr>
-      <td>bc1t $dst</td>
+      <td>BC1T $dst</td>
       <td>if $cc == True; Goto $dst</td>
       <td>On saute en $dst si le registre Condition Code est vrai</td>
     </tr>
     <tr>
-      <td>bc1f $dst</td>
+      <td>BC1F $dst</td>
       <td>if $cc == False; Goto $dst</td>
       <td>On saute en $dst si le registre Condition Code est faux</td>
     </tr>
@@ -680,15 +680,15 @@ Les paramètres sont notés X et Y dans le listing suivant.</p>
 
 <p>Pour que ça soit plus clair, et donner un exemple concret, voici un bout de code ASM :</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mtc1 $1 $fp0 # on met le contenu du registre général $1 dans le registre $fp0
-mtc1 $2 $fp2 # on met le contenu du registre général $2 dans le registre $fp2
-cvt.d.w $fp0, $fp0 # on considère que $fp0 était un entier, on le passe en double precision
-cvt.d.w $fp2, $fp2 # idem pour $fp2
-add.d $fp0, $fp0, $fp2 # $fp0 et $fp2 sont considérés comme des double precisions, on les additionne et on met le résultat dans $fp0
-c.lt.d $fp0, $fp2 # Si $fp0 est plus petit que $fp2, on met le registre cc a True. Sinon, à False. Dans cet exemple, $fp0 est forcément plus grand que $fp2 en raison de la ligne juste au dessus, donc $cc est égal à False
-bc1f 0x1234 # Si $cc est à False, on saute en 0x1234
-cvt.w.d $fp0, $fp0 # on repasse $fp0 en entier
-mfc1 $1, $fp0 # on renvoie $fp0 dans $1, sous forme d'entier
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MTC1 $1 $fp0 # on met le contenu du registre général $1 dans le registre $fp0
+MTC1 $2 $fp2 # on met le contenu du registre général $2 dans le registre $fp2
+CVT.d.w $fp0, $fp0 # on considère que $fp0 était un entier, on le passe en double precision
+CVT.d.w $fp2, $fp2 # idem pour $fp2
+ADD.d $fp0, $fp0, $fp2 # $fp0 et $fp2 sont considérés comme des double precisions, on les additionne et on met le résultat dans $fp0
+C.lt.d $fp0, $fp2 # Si $fp0 est plus petit que $fp2, on met le registre cc a True. Sinon, à False. Dans cet exemple, $fp0 est forcément plus grand que $fp2 en raison de la ligne juste au dessus, donc $cc est égal à False
+BC1F 0x1234 # Si $cc est à False, on saute en 0x1234
+CVT.w.d $fp0, $fp0 # on repasse $fp0 en entier
+MFC1 $1, $fp0 # on renvoie $fp0 dans $1, sous forme d'entier
 
 </code></pre></div></div>
 
@@ -697,11 +697,10 @@ mfc1 $1, $fp0 # on renvoie $fp0 dans $1, sous forme d'entier
 <p>Remarques :</p>
 
 <ul>
-  <li>D’après la doc, il n’existe pas de ssc1 et lsc1, qui auraient permis de charger des Single precision. Ne me demandez pas pourquoi.</li>
-  <li>Si j’ai mis les instructions en minuscule, c’est pas au hasard, c’est écrit en miniscule par convention. Je n’ai aucune idée de la convention en question, mais je ne les ai jamais vu en majuscules.</li>
+  <li>D’après la doc, il n’existe pas de SSC1 et LSC1, qui auraient permis de charger des Single precision. Ne me demandez pas pourquoi.</li>
   <li>Ce n’est pas super important pour lire l’ASM, mais le jour où vous devrez le modifier ou écrire un truc sur le coproc, il faut faire attention : un Floating en double precision est mis sur DEUX registres.</li>
   <li>En fait, j’en parle ici, des instructions FP, mais on en croise pas non plus tous les 4 matins. Ca se voit de temps en temps, mais c’est pas non plus ce qu’il y a le plus souvent à reverse.</li>
-  <li>J’ai mis le add, mais il en existe une palanquée d’autres, toutes sur le même principe : sub, mul, abs, sqrt, etc. Je n’ai pas voulu alourdir encore plus le tableau.</li>
+  <li>J’ai mis le add, mais il en existe une palanquée d’autres, toutes sur le même principe : SUB, MUL, ABS, SQRT, etc. Je n’ai pas voulu alourdir encore plus le tableau.</li>
 </ul>
 
 <h2 id="fun-fact">Fun Fact</h2>
@@ -721,8 +720,10 @@ Promis, le prochain article sera plus intéressant ^^’</p>
 
 <p>The lsd</p>
 
-<h2 id="sources">Sources</h2>
-<a href="https://hack64.net/docs/VR43XX.pdf">hack64.net</a> : la doc complète de la famille R43XX. Ca fait 600 et des bananes de pages. C’est plutôt long à lire ^^’</p>
+<p>Sources :
+<a href="http://www.mrc.uidaho.edu/mrc/people/jff/digital/MIPSir.html">www.mrc.uidaho.edu</a> : les instructions les plus utilisées. C’est là dessus que je me base principalement en cas de besoin.
+<a href="https://hack64.net/docs/VR43XX.pdf">hack64.net</a> : la doc complète de la famille R43XX. Ca fait 600 et des bananes de pages. C’est plutôt long à lire ^^’
+<a href="http://www.ece.lsu.edu/ee4720/2014/lfp.s.html">www.ece.lsu.edu</a> : une doc sur la partie instructions des floating.</p>
 
 <p>* Pour une liste exhaustive de toutes les instructions, ça se passe dans la doc présente sur hack64.net, à partir de la page 371. Bon courage.</p>
 
