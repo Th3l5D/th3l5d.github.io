@@ -684,7 +684,7 @@ Les paramètres sont notés X et Y dans le listing suivant.</p>
 mtc1 $2 $fp2 # on met le contenu du registre général $2 dans le registre $fp2
 cvt.d.w $fp0, $fp0 # on considère que $fp0 était un entier, on le passe en double precision
 cvt.d.w $fp2, $fp2 # idem pour $fp2
-add.d $fp0, $fp0, $fp2 # $fp0 et $fp2 sont considérés comme des double precisions, on les additionent et on met le résultat dans $fp0
+add.d $fp0, $fp0, $fp2 # $fp0 et $fp2 sont considérés comme des double precisions, on les additionne et on met le résultat dans $fp0
 c.lt.d $fp0, $fp2 # Si $fp0 est plus petit que $fp2, on met le registre cc a True. Sinon, à False. Dans cet exemple, $fp0 est forcément plus grand que $fp2 en raison de la ligne juste au dessus, donc $cc est égal à False
 bc1f 0x1234 # Si $cc est à False, on saute en 0x1234
 cvt.w.d $fp0, $fp0 # on repasse $fp0 en entier
