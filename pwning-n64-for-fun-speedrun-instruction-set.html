@@ -1,0 +1,767 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Pwning N64 for fun & speedrun : Instruction Set</title>
+
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="canonical" href="https://lsdsecdaemon.com//security/2019/12/03/pwning-n64-for-fun-speedrun-instruction-set.html">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				<li><a href="/game-hacking-links-repo.html">Game Hack Repo</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+
+<h2 id="pwning-n64-for-fun--speedrun--linstruction-set">Pwning N64 for fun &amp; speedrun : l’Instruction Set</h2>
+
+<p>Io les mousdugenou,</p>
+
+<p>Ouais ouais, je sais, la dernière fois, j’ai dit qu’on ferait du rom hacking sur ce blogpost. J’ai menti, et je suis un méchant pas beau, c’est pas une nouveauté.<br />
+Bref, souvenez vous, j’avais parlé de la N64 d’une manière globale, en présentant un peu tous les concepts. Mais je suis passé très très vite sur une partie importante, pour en faire un blogpost complet : les instructions du CPU MIPS. Ca va être un article chiant, pas super instructif (quoi que), et qui va pas plaire. MAIS. Il est important pour assimiler facilement la suite.<br />
+Today, on va donc parler de l’Instruction Set en détails, et je vais principalement expliquer les instructions les plus utilisées sur du MIPS*, avec un gros listing des milles-fa, et quelques commentaires.</p>
+
+<p>So, have fun, dudes ! (ou pas. Même moi, j’aurais pas envie de le lire ce post)
+<!--more--></p>
+
+<h3 id="avant-de-commencer">Avant de commencer</h3>
+
+<p>Il est nécessaire, pour que vous compreniez tous -même pour les sagouins qui n’ont pas lu mon article précédent-, de donner quelques explications globales. On peut comprendre le jeu d’instruction sans ce paragraphe, mais c’est toujours intéressant à connaitre.</p>
+
+<h4 id="les-classes-dinstructions">Les classes d’instructions</h4>
+
+<p>Les instructions MIPS ont été définies en plusieurs classes :</p>
+
+<ul>
+  <li>I family : ici, ce sont les instructions utilisant un Immediate dans les paramètres.</li>
+  <li>J family : dédié uniquement à J et JAL.</li>
+  <li>R family : pour les instructions tapant les registres. Ce sont ces commandes qui utilisent le paramètre Func, dont je parle dans le paragraphe suivant.</li>
+</ul>
+
+<p>En fait, comme chaque instruction est codé sur 32 bits, on a défini ces classes en fonction de la manière de lire les bits : selon les familles, le découpage et la lecture est fait différemment au niveau binaire, afin d’optimiser le nombre de bits utiles.</p>
+
+<h5 id="classe-immediate">Classe I(mmediate)</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>opcode</th>
+      <th>Source</th>
+      <th>Target</th>
+      <th>Imm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6 bits</td>
+      <td>5 bits</td>
+      <td>5 bits</td>
+      <td>16 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Elle est représentée comme ci dessus. Les 6 bits d’opcode sont necessaires pour identifier l’instruction. Ensuite, ona a un registre source et destination de 5 bits chacun, puis un Immediate de 16 bits. Cette classe a été optimisée pour avoir le plus grand Immediate possible.</p>
+
+<h5 id="classe-jump">Classe J(ump)</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>opcode</th>
+      <th>Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6 bits</td>
+      <td>26 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Comme précédemment, on a 6 bits d’opcode, puis uniquement une adresse codée sur 26 bits, afin de pouvoir aller le plus loin possible en un seul saut.<br />
+Dans cette classe, et ça peut paraître idiot, on ne trouve pas d’autre instruction de saut comme JR.<br />
+“Pourquoi ?” allez vous me demander ?<br />
+Tout simplement parce que JR utilise un registre comme paramètre, ce qui fait que d’une part, il n’y aucun intérêt à avoir 26 bits pour un registre, et d’autre part, la classe registre est faite pour ça. Ca évite donc ici d’avoir une exception du genre ‘Si c’est JR, alors c’est pas une adresse, mais un registre’.</p>
+
+<h5 id="classe-register">Classe R(egister)</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>opcode</th>
+      <th>Source</th>
+      <th>Target</th>
+      <th>Dest</th>
+      <th>Shift</th>
+      <th>function</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6 bits</td>
+      <td>5 bits</td>
+      <td>5 bits</td>
+      <td>5 bits</td>
+      <td>5 bits</td>
+      <td>6 bits</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Dernière classe, mais la plus compliquée à apréhender, principalement en raison du paramètre Func : la famille Register.<br />
+Comme toujours, 6 bits pour l’opcode, puis 5 bits de source, 5 de cible, et 5 de destination (attention, faut pas les confondre).<br />
+On trouve ensuite 5 bits utilisés uniquement dans le cadre des instructions de bit shifting, puis 6 bits de Func, dont je parle plus loin.</p>
+
+<p>Ces deux derniers paramètres ont l’air d’avoir été un peu “rajoutés” parce qu’on a pas trouvé moyen de faire autrement.<br />
+Cela dit, mettre le shift dans un paramètre à part est totalement logique : Source/Target/Destination doivent être des registres, et Func a une fonction totalement différente. Du coup, le seul endroit où mettre les infos de shift, c’était là :D.<br />
+Concernant Func, il est là pour palier au “manque de place” sur les opcodes. Ces derniers sont codés sur 6 bits, ce qui ne fait que 32 instructions possibles. Si on rajoute les bits de Func, on augmente considérablement le nombre total d’instructions. Et comme il n’y a besoin que de 26 bits pour contenir les autres informations nécessaires aux instructions de la famille R, le compte est bon.</p>
+
+<h5 id="mais-pourquoi-ils-ont-fait-çaaaaaa-">Mais pourquoi ils ont fait çaaaaaa ?</h5>
+
+<p>En fait, tout ce découpage n’a pas réellement de sens niveau dev. Il est même carrément idiot car on se retouve avec des ADD et des Jump dans la même famille. C’est pour ça qu’on trouve plus souvent des listings comme celui que j’ai fait plus bas.<br />
+L’avantage principal, c’est que chaque classe est optimisée par rapport à ses paramètres, et on ne perd donc pas de bit inutilement.</p>
+
+<p>Au passage, il existe plus ou moins d’autres familles pour les instructions dédiées aux co-processeurs, mais on va pas charger la mule, sinon vous risquez de péter une durite.</p>
+
+<h4 id="les-opcodes">Les opcodes</h4>
+
+<p>La notion d’opcode en MIPS est un peu fucked up. Il existe en fait des instructions ayant un opcode unique (les classes I et J), et d’autres (la fameuse classe R) qui se partagent le même opcode (par exemple, ADD et Jump Return ont tous les deux l’opcode 0x00).</p>
+
+<p>Si on regarde le détail du parsing de la classe R, on voit qu’on a 6 bits de Func, qui sont utilisés comme une espèce de “sous opcode” dégueulasse qui permet de distinguer les fonctions. Ainsi, même si ADD et JR ont pour opcode 0x00, le premier aura comme Func 0x20, et le second 0x08.</p>
+
+<p>Au passage, quand je dis dégueulasse, c’est faux, les mecs qui ont pondu ça ont plutôt bien joué leur coup, car cela permet d’optimiser la place de chaque type d’instruction. Comme les instructions sur les registres sont les plus importantes, il n’a pas été jugé utile de mettre un paramètre Func ailleurs.</p>
+
+<p>Le problème, c’est que pour parler de ces opcodes en hexa, c’est relou, car ce n’est pas “juste” l’opcode, mais des fois l’opcode ET une func.
+Faut aussi prendre en compte que ça sera plus galère de chercher un opcode hexa dans un dump. Et comme en plus ils sont codés sur 6 bits, on peut même pas se baser sur un octet comme recherche, puisque les 2 derniers bits sont utilisés pour des paramètres.</p>
+
+<h4 id="les-bits-variables">Les bits variables</h4>
+
+<p>Ok, ce titre n’a pas de sens, et ce paragraphe n’a d’ailleurs que peu d’utilité pour comprendre l’instruction set, mais j’ai de la confiture à étaler sur ma culture (ou un truc comme ça).</p>
+
+<p>Certaines instructions, comme LUI, ont ce que j’appelle des bits variables, ou encore des “On s’en bat le bit”. En gros, peu importe les bits qu’on met, l’instruction sera la même.<br />
+Si on regarde par exemple le détail de LUI, on voit que c’est une instruction de la famille I (cf plus haut), famille qui attend comme argument une source, une cible, et un Immediate.<br />
+Mais LUI n’a pas besoin de paramètre Source. Du coup, peu importe ce qu’on met dans les 5 bits de ce champ, le proc ne s’en souciera pas…</p>
+
+<h3 id="les-instructions-de-calcul">Les instructions de calcul</h3>
+
+<p>Je met ça ici, mais ça vaut pour tous les paragraphes : dans mon listing, un élément faisant référence à un registre sera noté $XXX. Un élément renvoyant à une adresse mémoire sera noté *XXX. Une valeur fixe sera notée Imm.</p>
+
+<h4 id="les-additions-et-soustractions">Les additions et soustractions</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ADD $dst, $src1, $src2</td>
+      <td>$dst = $src1 + $src2</td>
+      <td>0x00</td>
+      <td>0x20</td>
+      <td>Les opérandes sont signées</td>
+    </tr>
+    <tr>
+      <td>ADDU $dst, $src1, $src2</td>
+      <td>$dst = $src1 + $src2</td>
+      <td>0x00</td>
+      <td>0x21</td>
+      <td>Les opérandes ne sont PAS signées</td>
+    </tr>
+    <tr>
+      <td>ADDI $dst, $src, Imm</td>
+      <td>$dst = $src + Imm</td>
+      <td>0x08</td>
+      <td>N/A</td>
+      <td>Les opérandes sont signées</td>
+    </tr>
+    <tr>
+      <td>ADDIU $dst, $src, Imm</td>
+      <td>$dst = $src + Imm</td>
+      <td>0x09</td>
+      <td>N/A</td>
+      <td>Les opérandes ne sont PAS signées</td>
+    </tr>
+    <tr>
+      <td>SUB $dst, $src1, $src2</td>
+      <td>$dst = $src1 - $src2</td>
+      <td>0x00</td>
+      <td>0x22</td>
+      <td>Les opérandes sont signées</td>
+    </tr>
+    <tr>
+      <td>SUBU $dst, $src1, $src2</td>
+      <td>$dst = $src1 - $src2</td>
+      <td>0x00</td>
+      <td>0x23</td>
+      <td>Les opérandes ne sont PAS signées</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Remarque :</p>
+<ul>
+  <li>Non. Il n’y a pas de soustraction avec des Immediates. Dunno why.</li>
+  <li>Pour les opérations signées, elles génèrent un overflow exception géré par le coprocesseur.</li>
+</ul>
+
+<h4 id="les-multiplications-et-divisions">Les multiplications et divisions</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MULT $src1, $src2</td>
+      <td>$LO = $src1 * $src2</td>
+      <td>0x00</td>
+      <td>0x18</td>
+      <td>Les registres sont signés</td>
+    </tr>
+    <tr>
+      <td>MULTU $src1, $src2</td>
+      <td>$LO = $src1 * $src2</td>
+      <td>0x00</td>
+      <td>0x19</td>
+      <td>Les registres ne sont PAS signés</td>
+    </tr>
+    <tr>
+      <td>DIV $src1, $src2</td>
+      <td>$LO = $src1 * $src2</td>
+      <td>0x00</td>
+      <td>0x1A</td>
+      <td>Les registres sont signés</td>
+    </tr>
+    <tr>
+      <td>DIVU $src1, $src2</td>
+      <td>$LO = $src1 * $src2</td>
+      <td>0x00</td>
+      <td>0x1B</td>
+      <td>Les registres ne sont PAS signés</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Remarques :</p>
+<ul>
+  <li>$LO est toujours le registre dans lequel on met le résultat d’une multiplication/division.</li>
+  <li>$HI est toujours les registre dans lequel on met le reste d’une division.</li>
+</ul>
+
+<h3 id="les-sauts">Les sauts</h3>
+
+<h4 id="les-sauts-classiques">Les sauts classiques</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>J Imm</td>
+      <td>Goto Imm</td>
+      <td>0x02</td>
+      <td>N/A</td>
+      <td>bahhh, c’est un Jump quoi… Il est aussi noté B des fois (pour Branch). Imm est codé sur 26 bits</td>
+    </tr>
+    <tr>
+      <td>JAL Imm</td>
+      <td>0x03</td>
+      <td>N/A</td>
+      <td>$RA = addr JAL+8; Goto Imm</td>
+      <td>Jump And Link. J’en ai assez parlé dans l’article précédent. Imm est codé sur 26 bits</td>
+    </tr>
+    <tr>
+      <td>JR $src</td>
+      <td>Goto $src</td>
+      <td>0x00</td>
+      <td>0x08</td>
+      <td>Jump Return. Saute vers le registre donné, usuellement $RA</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="les-branches">Les branches</h4>
+
+<p>Les branches, c’est comme des sauts, mais avec une condition.
+Il y en a un paquet, mais je ne vais pas mettre les moins utilisées, ça sert à rien.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>BEQ $src1, $src2, Imm</td>
+      <td>if $src1 == $src2; Goto Imm</td>
+      <td>0x04</td>
+      <td>N/A</td>
+      <td>Branch on EQual. Offset sur 2 octets</td>
+    </tr>
+    <tr>
+      <td>BNE $src1, $src2, Imm</td>
+      <td>if $src1 != $src2; Goto Imm</td>
+      <td>0x05</td>
+      <td>N/A</td>
+      <td>Branch on Not Equal. Offset sur 2 octets</td>
+    </tr>
+    <tr>
+      <td>BGEZ $src, Imm</td>
+      <td>if $src &gt;= 0; Goto Imm</td>
+      <td>0x01</td>
+      <td>N/A</td>
+      <td>Branch on Greater or Equal to Zero. Offset sur 2 octets</td>
+    </tr>
+    <tr>
+      <td>BGTZ $src, Imm</td>
+      <td>if $src &gt; 0; Goto Imm</td>
+      <td>0x07</td>
+      <td>N/A</td>
+      <td>Branch on Greater Than Zero. Offset sur 2 octets</td>
+    </tr>
+    <tr>
+      <td>BLEZ $src, Imm</td>
+      <td>if $src &lt;= 0; Goto Imm</td>
+      <td>0x06</td>
+      <td>N/A</td>
+      <td>Branch on Less or Equal to Zero. Offset sur 2 octets</td>
+    </tr>
+    <tr>
+      <td>BLTZ $src, Imm</td>
+      <td>if $src &lt; 0; Goto Imm</td>
+      <td>0x01</td>
+      <td>N/A</td>
+      <td>Branch on Less Than Zero. Offset sur 2 octets</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Remarque :</p>
+<ul>
+  <li>Ces instructions ont une version Likely (eg. BEQL). Elles sont utilisées pour éviter les problématiques du Branch Delay. Comme on suppose que la branche va être prise, le proc ne va pas exécuter l’instruction juste après le branch, mais directement celle à l’adresse demandée.</li>
+</ul>
+
+<h3 id="les-opérations-sur-les-bits">Les opérations sur les bits</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AND $dst, $src1, $src2</td>
+      <td>$dst = $src1 &amp; $src2</td>
+      <td>0x00</td>
+      <td>0x24</td>
+      <td>Un AND classique</td>
+    </tr>
+    <tr>
+      <td>ANDI $dst, $src1, Imm</td>
+      <td>$dst = $src1 &amp; Imm</td>
+      <td>0x0C</td>
+      <td>N/A</td>
+      <td>Un AND classique avec un Immediate</td>
+    </tr>
+    <tr>
+      <td>OR $dst, $src1, $src2</td>
+      <td>$dst = $src1 | $src2</td>
+      <td>0x00</td>
+      <td>0x25</td>
+      <td>Un OR classique</td>
+    </tr>
+    <tr>
+      <td>ORI $dst, $src1, Imm</td>
+      <td>$dst = $src1 | Imm</td>
+      <td>0x0D</td>
+      <td>N/A</td>
+      <td>Un OR classique avec un Immediate</td>
+    </tr>
+    <tr>
+      <td>XOR $dst, $src1, $src2</td>
+      <td>$dst = $src1 ^ $src2</td>
+      <td>0x00</td>
+      <td>0x26</td>
+      <td>Un XOR classique</td>
+    </tr>
+    <tr>
+      <td>XORI $dst, $src1, Imm</td>
+      <td>$dst = $src1 ^ Imm</td>
+      <td>0x0E</td>
+      <td>N/A</td>
+      <td>Un XOR classique avec un Immediate</td>
+    </tr>
+    <tr>
+      <td>SLL $dst, $src, Imm</td>
+      <td>$dst = $src &lt;&lt; Imm</td>
+      <td>0x00</td>
+      <td>0x00</td>
+      <td>Shift Left Logical. Shift codé sur 5 bits</td>
+    </tr>
+    <tr>
+      <td>SRL $dst, $src, Imm</td>
+      <td>$dst = $src &gt;&gt; Imm</td>
+      <td>0x00</td>
+      <td>0x02</td>
+      <td>Shift Right Logical. Shift codé sur 5 bits</td>
+    </tr>
+    <tr>
+      <td>SRA $dst, $src, Imm</td>
+      <td>$dst = $src &gt;&gt; Imm</td>
+      <td>0x00</td>
+      <td>0x03</td>
+      <td>Shift Right Arithmetic. Comme SRL, mais on garde le bit de signature</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="les-mouvements-dinformation">Les mouvements d’information</h3>
+
+<p>C’est un titre un peu foireux, mais en gros, c’est tout ce qui permet de charger vers/depuis la heap, plus deux trois autres trucs du même genre.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Opcode</th>
+      <th>Func</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LB $dst, Imm(*src),</td>
+      <td>$dst = *(*src+Imm)</td>
+      <td>0x20</td>
+      <td>N/A</td>
+      <td>Load Byte. On prend *src, auquel on ajoute Imm, et on met la valeur de l’adresse (*src+Imm) dans $dst</td>
+    </tr>
+    <tr>
+      <td>LW $dst, Imm(*src)</td>
+      <td>$dst = *(*src+Imm)</td>
+      <td>0x23</td>
+      <td>N/A</td>
+      <td>Load Word. Comme LB, mais sur un Word</td>
+    </tr>
+    <tr>
+      <td>SB $src, Imm(*dst)</td>
+      <td>*(*dst+Imm) = $src</td>
+      <td>0x28</td>
+      <td>N/A</td>
+      <td>Store Byte. C’est l’inverse de LB. On prend la valeur d’un registre, et on le met dans l’adresse spécifiée.</td>
+    </tr>
+    <tr>
+      <td>SW $src, Imm(*dst)</td>
+      <td>*(*dst+Imm) = $src</td>
+      <td>0x2B</td>
+      <td>N/A</td>
+      <td>Store Word. Commet SB, mais sur un Word</td>
+    </tr>
+    <tr>
+      <td>LUI $dst, Imm</td>
+      <td>$dst = Imm &lt;&lt; 16</td>
+      <td>0x0F</td>
+      <td>N/A</td>
+      <td>Load Upper Immediate. Ca permet de charger une valeur dans la partie haute d’un registre</td>
+    </tr>
+    <tr>
+      <td>MFHI $dst</td>
+      <td>$dst = $HI</td>
+      <td>0x00</td>
+      <td>0x10</td>
+      <td>Move From HI (le reste d’une division)</td>
+    </tr>
+    <tr>
+      <td>MFLO $dst</td>
+      <td>$dst= $LO</td>
+      <td>0x00</td>
+      <td>0x12</td>
+      <td>Move From LO (le réstultat d’une multiplication ou division)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Remarque :</p>
+<ul>
+  <li>Pour ceux qui se posent des questions sur tout le bazar sur les chargements/sauvegardes de données, go lire la partie “Quelques tricks” de mon blogpost précédent.</li>
+</ul>
+
+<h3 id="les-conditions">Les conditions</h3>
+
+<p>Ces instructions sont plutôt pratiques, elles permmettent de faire des if en une seule ligne :)
+tldr : ça remplace le flag Zero sur x86.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Syntaxe</td>
+      <td>Description</td>
+      <td>Commentaires</td>
+    </tr>
+    <tr>
+      <td>SLT $dst $src1, $src2</td>
+      <td>$dst = 0; if $src1 &lt; $src2 ; $dst = 1</td>
+      <td>Set if Less Than. Plutôt obvious comme nom</td>
+    </tr>
+    <tr>
+      <td>SLTI $dst $src, Imm</td>
+      <td>$dst = 0; if $src1 &lt; Imm ; $dst = 1</td>
+      <td>Pareil, mais avec un Immediate</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Remarque :</p>
+<ul>
+  <li>Il existe les versions unsigned, mais je ne les ai jamais croisées.</li>
+</ul>
+
+<h3 id="le-coprocesseur">Le coprocesseur</h3>
+
+<p>Comme je l’ai dit dans mon précédent blogpost, il existe sur MIPS un coprocesseur qui gère tout ce qui est nombres flotants (FP). Ce coproc a un instruction set dédié, et totalement différent de ce qu’on croise d’habitude.<br />
+Globalement, il n’est pas là pour toute “l’intelligence” du programme, mais juste pour la partie calcul des floating. Du coup, le programme principal lui passe les datas, le coproc va effectuer ses calculs et redonner les infos au proc principal. Pour lui envoyer les données, on utilise les fonctions suivantes :</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Commentaires</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mtc1 $src, $dst</td>
+      <td>$dst = $src</td>
+      <td>Move To Coproc 1. La source est un registre général, et la destination un registre floating. Le 1 indique ici qu’on déplace vers le coproc 1. On pourrait virtuellement mettre mtc2 pour déplacer vers le coproc 2**</td>
+    </tr>
+    <tr>
+      <td>mfc1 $src, $dst</td>
+      <td>$dst = $src</td>
+      <td>Move From Coproc 1. C’est l’inverse du mtc1</td>
+    </tr>
+    <tr>
+      <td>lwc1 $dst, Imm($src)</td>
+      <td>$dst = *(Imm+$src)</td>
+      <td>Load Word to Coproc 1. On met dans $dst (un registre Floating) la valeur mémoire de $src auquel on aura ajouté Imm. Ici, on charge un entier</td>
+    </tr>
+    <tr>
+      <td>ldc1 $dst, Imm($src)</td>
+      <td>$dst = *(Imm+$src)</td>
+      <td>Load Double to Coproc 1. Comme lwc1, mais on charge ici un nombre flotant</td>
+    </tr>
+    <tr>
+      <td>swc1 $dst, Imm($src)</td>
+      <td>$dst = *(Imm+$src)</td>
+      <td>Store Word from Coproc 1. On met dans $dst (un registre général) la valeur mémoire de $src auquel on aura ajouté Imm. Ici, on charge un entier</td>
+    </tr>
+    <tr>
+      <td>sdc1 $dst, Imm($src)</td>
+      <td>$dst = *(Imm+$src)</td>
+      <td>Store Double from Coproc 1. Comme swc1, mais on charge ici un nombre flotant</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Une fois que les données sont récupérées, ce petit coquinou peut effectuer quelques instructions.<br />
+Mais, si tout était simple, ça ne serait pas drôle… En fait ces instructions sont “variables”. Chaque instruction se compose d’une commande et d’un ou plusieurs paramètre(s), ce qui permet de donner une directive.<br />
+Les paramètres sont notés X et Y dans le listing suivant.</p>
+<ul>
+  <li>X correspond à un format de nombre et peut prendre les valeurs <code class="highlighter-rouge">s</code> (pour single precision), <code class="highlighter-rouge">d</code> (double precision), <code class="highlighter-rouge">w</code> (word/integer)</li>
+  <li>Y correspond à des conditions de comparaisons, et des  valeurs telles que <code class="highlighter-rouge">eq</code> (EQual), <code class="highlighter-rouge">lt</code> (Less Than), <code class="highlighter-rouge">le</code> (Less or Equal), <code class="highlighter-rouge">gt</code> (Greater Than), ou <code class="highlighter-rouge">ge</code> (Greater or Equal)***.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>Syntaxe</th>
+      <th>Description</th>
+      <th>Commentaire</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>add.X $dst, $src1, $src2</td>
+      <td>X($dst) = X($src1) + X($src2)</td>
+      <td>Une addition quoi…</td>
+    </tr>
+    <tr>
+      <td>cvt.X1.X2 $dst, $src</td>
+      <td>X1 $dst = X2($src)</td>
+      <td>conversion entre deux formats de nombres</td>
+    </tr>
+    <tr>
+      <td>c.Y.X $src1, $src2</td>
+      <td>$cc = (X($src1) Y X($src2))</td>
+      <td>comparaison entre deux nombres. Le résultat est mis dans le registre spécial Condition Code</td>
+    </tr>
+    <tr>
+      <td>bc1t $dst</td>
+      <td>if $cc == True; Goto $dst</td>
+      <td>On saute en $dst si le registre Condition Code est vrai</td>
+    </tr>
+    <tr>
+      <td>bc1f $dst</td>
+      <td>if $cc == False; Goto $dst</td>
+      <td>On saute en $dst si le registre Condition Code est faux</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Pour que ça soit plus clair, et donner un exemple concret, voici un bout de code ASM :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mtc1 $1 $fp0 # on met le contenu du registre général $1 dans le registre $fp0
+mtc1 $2 $fp2 # on met le contenu du registre général $2 dans le registre $fp2
+cvt.d.w $fp0, $fp0 # on considère que $fp0 était un entier, on le passe en double precision
+cvt.d.w $fp2, $fp2 # idem pour $fp2
+add.d $fp0, $fp0, $fp2 # $fp0 et $fp2 sont considérés comme des double precisions, on les additionent et on met le résultat dans $fp0
+c.lt.d $fp0, $fp2 # Si $fp0 est plus petit que $fp2, on met le registre cc a True. Sinon, à False. Dans cet exemple, $fp0 est forcément plus grand que $fp2 en raison de la ligne juste au dessus, donc $cc est égal à False
+bc1f 0x1234 # Si $cc est à False, on saute en 0x1234
+cvt.w.d $fp0, $fp0 # on repasse $fp0 en entier
+mfc1 $1, $fp0 # on renvoie $fp0 dans $1, sous forme d'entier
+
+</code></pre></div></div>
+
+<p>Ce code n’a pas réellement de sens, mais il est là pour que le fonctionnement des instructions floating soit plus clair. J’espère que c’est le cas, parce que c’était un poil galère à expliquer -_-.</p>
+
+<p>Remarques :</p>
+
+<ul>
+  <li>D’après la doc, il n’existe pas de ssc1 et lsc1, qui auraient permis de charger des Single precision. Ne me demandez pas pourquoi.</li>
+  <li>Si j’ai mis les instructions en minuscule, c’est pas au hasard, c’est écrit en miniscule par convention. Je n’ai aucune idée de la convention en question, mais je ne les ai jamais vu en majuscules.</li>
+  <li>Ce n’est pas super important pour lire l’ASM, mais le jour où vous devrez le modifier ou écrire un truc sur le coproc, il faut faire attention : un Floating en double precision est mis sur DEUX registres.</li>
+  <li>En fait, j’en parle ici, des instructions FP, mais on en croise pas non plus tous les 4 matins. Ca se voit de temps en temps, mais c’est pas non plus ce qu’il y a le plus souvent à reverse.</li>
+  <li>J’ai mis le add, mais il en existe une palanquée d’autres, toutes sur le même principe : sub, mul, abs, sqrt, etc. Je n’ai pas voulu alourdir encore plus le tableau.</li>
+</ul>
+
+<h2 id="fun-fact">Fun Fact</h2>
+
+<p>On connait tous l’instruction NOP. Et bien ici, elle n’existe techniquement… pas :D<br />
+En fait, un NOP en MIPS a un encoding 0000 0000 0000 0000 0000 0000 0000 0000.<br />
+L’instruction SLL a, elle, un encoding de 0000 00ss ssst tttt dddd dhhh hh00 0000.<br />
+Donc techniquement, un NOP correspond à un SLL avec comme destination, source et shift 0. Un 0, qu’on shifte de 0 bits, et qu’on met dans 0, bahhhh, ça ne fait rien d’utile, et ça matche avec la définition d’un NOP ^^.</p>
+
+<h2 id="it-is-the-end-my-friend">It is the end, my friend</h2>
+
+<p>Voilà. Un article dans le genre pas super intéressant à lire. Moi même, l’Instruction set, je me le suis pas parsé entièrement avant de devoir écrire ce post.<br />
+Cela dit, il n’y a pas taaaaaaant d’instructions que ça (d’où le R de RISC), et une partie est similaire à du x86, même s’il y a quelques changements. Du coup, ça s’apprend vite, surtout que globalement, on retrouve toujours les mêmes.<br />
+Promis, le prochain article sera plus intéressant ^^’</p>
+
+<p>Enjoy</p>
+
+<p>The lsd</p>
+
+<p>Liens utiles :
+<a href="https://hack64.net/docs/VR43XX.pdf">hack64.net</a> : la doc complète de la famille R43XX. Ca fait 600 et des bananes de pages. C’est plutôt long à lire ^^’</p>
+
+<p>* Pour une liste exhaustive de toutes les instructions, ça se passe dans la doc présente sur hack64.net, à partir de la page 371. Bon courage.</p>
+
+<p>** Qui n’est pas utilisé, la datasheet indique qu’ils sont “for future use”. Il existe au passage un maximum de 4 coproc, cela dit, jouer à envoyer des datas dans d’autres coprocs que le 1, c’est pas forcément la gloire assurée.</p>
+
+<p>*** En fait, en potassant le doc complète, on voit qu’il en existe un gros paquet. Tableau 7-11 en page 228 de la doc sur hack64.net.</p>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://lsdsecdaemon.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017-2019</p>
+</footer>
+
+	</main>
+</body>
+
+</html>
+
