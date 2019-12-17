@@ -324,9 +324,9 @@ Mais LUI n’a pas besoin de paramètre Source. Du coup, peu importe ce qu’on 
     </tr>
     <tr>
       <td>JAL Imm</td>
-      <td>0x03</td>
-      <td>N/A</td>
       <td>$RA = addr JAL+8; Goto Imm</td>
+      <td>N/A</td>
+      <td>0x03</td>
       <td>Jump And Link. J’en ai assez parlé dans l’article précédent. Imm est codé sur 26 bits</td>
     </tr>
     <tr>
@@ -402,7 +402,7 @@ Il y en a un paquet, mais je ne vais pas mettre les moins utilisées, ça sert �
 
 <p>Remarque :</p>
 <ul>
-  <li>Ces instructions ont une version Likely (eg. BEQL). Elles sont utilisées pour éviter les problématiques du Branch Delay. Comme on suppose que la branche va être prise, le proc ne va pas exécuter l’instruction juste après le branch, mais directement celle à l’adresse demandée.</li>
+  <li>Ces instructions ont une version Likely (eg. BEQL). En gros, la Branch va forcément charger l’instruction juste en dessous la branche, mais si la condition est fausse, le proc va invalider cette instruction, et on aura “juste” l’impression de sauter une instruction.</li>
 </ul>
 
 <h3 id="les-opérations-sur-les-bits">Les opérations sur les bits</h3>
@@ -613,22 +613,22 @@ Globalement, il n’est pas là pour toute “l’intelligence” du programme, 
     <tr>
       <td>LWC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Load Word to Coproc 1. On met dans $dst (un registre Floating) la valeur mémoire de $src (un registre général) auquel on aura ajouté Imm. Ici, on charge un entier</td>
+      <td>Load Word to Coproc 1. On met dans $dst (un registre Floating) la valeur mémoire de $src (un registre général) auquel on aura ajouté Imm. Ici, on charge un octet</td>
     </tr>
     <tr>
       <td>LDC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Load Double to Coproc 1. Comme LWC1, mais on charge ici un nombre flottant</td>
+      <td>Load Double to Coproc 1. Comme LWC1, mais on charge ici un double</td>
     </tr>
     <tr>
       <td>SWC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Store Word from Coproc 1. On met dans $dst (un registre général) la valeur mémoire de $src (un registre floating) auquel on aura ajouté Imm. Ici, on charge un entier</td>
+      <td>Store Word from Coproc 1. On met dans $dst (un registre général) la valeur mémoire de $src (un registre floating) auquel on aura ajouté Imm. Ici, on charge un octet</td>
     </tr>
     <tr>
       <td>SDC1 $dst, Imm($src)</td>
       <td>$dst = *(Imm+$src)</td>
-      <td>Store Double from Coproc 1. Comme SWC1, mais on charge ici un nombre flottant</td>
+      <td>Store Double from Coproc 1. Comme SWC1, mais on charge ici un double</td>
     </tr>
   </tbody>
 </table>
@@ -697,8 +697,7 @@ MFC1 $1, $fp0 # on renvoie $fp0 dans $1, sous forme d'entier
 <p>Remarques :</p>
 
 <ul>
-  <li>D’après la doc, il n’existe pas de SSC1 et LSC1, qui auraient permis de charger des Single precision. Ne me demandez pas pourquoi.</li>
-  <li>Ce n’est pas super important pour lire l’ASM, mais le jour où vous devrez le modifier ou écrire un truc sur le coproc, il faut faire attention : un Floating en double precision est mis sur DEUX registres.</li>
+  <li>Ce n’est pas super important pour lire l’ASM, mais le jour où vous devrez le modifier ou écrire un truc sur le coproc, il faut faire attention : un Floating en double precision peut être mis sur DEUX registres (en fonction di bit FR du registre spécial SR, mais j’en ai pas encore parlé de celui là ^^’).</li>
   <li>En fait, j’en parle ici, des instructions FP, mais on en croise pas non plus tous les 4 matins. Ca se voit de temps en temps, mais c’est pas non plus ce qu’il y a le plus souvent à reverse.</li>
   <li>J’ai mis le add, mais il en existe une palanquée d’autres, toutes sur le même principe : SUB, MUL, ABS, SQRT, etc. Je n’ai pas voulu alourdir encore plus le tableau.</li>
 </ul>
@@ -714,7 +713,8 @@ Donc techniquement, un NOP correspond à un SLL avec comme destination, source e
 
 <p>Voilà. Un article dans le genre pas super intéressant à lire. Moi même, l’Instruction set, je me le suis pas parsé entièrement avant de devoir écrire ce post.<br />
 Cela dit, il n’y a pas taaaaaaant d’instructions que ça (d’où le R de RISC), et une partie est similaire à du x86, même s’il y a quelques changements. Du coup, ça s’apprend vite, surtout que globalement, on retrouve toujours les mêmes.<br />
-Promis, le prochain article sera plus intéressant ^^’</p>
+Promis, le prochain article sera plus intéressant ^^’
+Au passage, je remerci ibileleC pour sa relecture et les erreurs qu’il m’a remonté :)</p>
 
 <p>Enjoy</p>
 
