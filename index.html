@@ -25,7 +25,7 @@
 
 <body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
 	<header>
-	<h1><a href="">Lsd Security Daemon</a><br />
+	<h1><a href="https://lsdsecdaemon.com">Lsd Security Daemon</a><br />
 	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
 </header>
 
@@ -37,6 +37,8 @@
 				<li><a href="/categories">Catégories</a></li>
 				 
 				<li><a href="/about/">About Box</a></li>
+				  
+				<li><a href="/game-hacking-links-repo/">Game Hacking Repo</a></li>
 				                 
 				<li><a href="/feed.xml">RSS</a></li>
 
@@ -52,38 +54,39 @@
   
   
 
-          <h2><a class="post-link" href="/pwning-n64-for-fun-speedrun-instruction-set.html">Pwning N64 for fun & speedrun : Instruction Set</a></h2>
 
-<p>Io les mousdugenou,</p>
+    
+
+          <h2><a class="post-link" href="/pwning-n64-for-fun-speedrun-instruction-set">Pwning N64 for fun &amp; speedrun : Instruction Set</a></h2>
+          <p>Io les mousdugenou,</p>
 
 <p>Ouais ouais, je sais, la dernière fois, j’ai dit qu’on ferait du rom hacking sur ce blogpost. J’ai menti, et je suis un méchant pas beau, c’est pas une nouveauté.<br />
 Bref, souvenez vous, j’avais parlé de la N64 d’une manière globale, en présentant un peu tous les concepts. Mais je suis passé très très vite sur une partie importante, pour en faire un blogpost complet : les instructions du CPU MIPS. Ca va être un article chiant, pas super instructif (quoi que), et qui va pas plaire. MAIS. Il est important pour assimiler facilement la suite.<br />
-Today, on va donc parler de l’Instruction Set en détails, et je vais principalement expliquer les instructions les plus utilisées sur du MIPS*, avec un gros listing des milles-fa, et quelques commentaires.
-<p>So, have fun, dudes ! (ou pas. Même moi, j’aurais pas envie de le lire ce post)
-</p>
+Today, on va donc parler de l’Instruction Set en détails, et je vais principalement expliquer les instructions les plus utilisées sur du MIPS*, avec un gros listing des milles-fa, et quelques commentaires.</p>
+
+<p>So, have fun, dudes ! (ou pas. Même moi, j’aurais pas envie de le lire ce post)</p>
 
 
-          <a class="post-link" href="/pwning-n64-for-fun-speedrun-instruction-set.html">Lire la suite</a>
+          <a class="post-link" href="/pwning-n64-for-fun-speedrun-instruction-set">Lire la suite</a>
+    
 
+          <h2><a class="post-link" href="/pwning-n64-for-fun-speedrun-mipswtfr4300ilol">Pwning N64 for fun &amp; speedrun : MIPSWTFR4300iLOL</a></h2>
+          <p>Salut les chamallowsmous,</p>
 
-          <h2><a class="post-link" href="/pwning-n64-for-fun-speedrun-mipswtfr4300ilol.html">Pwning N64 for fun & speedrun : MIPSWTFR4300iLOL</a></h2>
+<p>Je sais que je me suis fait une petite spécialité dans l’analyse du 802.11, mais comme je suis en voyage, c’est pas toujours facile d’analyser du wifi. Du coup, à la place, je me suis lancé dans le rom hacking. Alors, késséca le rom hacking ? Et puis pourquoi je fais ça ?</p>
 
-<p>Salut les chamallowsmous,</p>
-
-<p>Je sais que je me suis fait une petite spécialité dans l'analyse du 802.11, mais comme je suis en voyage, c'est pas toujours facile d'analyser du wifi. Du coup, à la place, je me suis lancé dans le rom hacking. Alors, késséca le rom hacking ? Et puis pourquoi je fais ça ?</p>
-
-<p>Le rom hacking, c'est globalement la modification d'une rom (je vous fais pas l'insulte de vous expliquer ce qu'est une rom hein) pour ajouter, modifier ou supprimer des éléments. Par exemple, rendre le jeu plus difficile en ajoutant des ennemis, ou ce genre de trucs. Ça se fait pas mal sur des jeux 2D (NES, megadrive, etc), parce que c'est plus simple (pas de gestion de la 3D, archi basique, blablabla).<br />
-Pourquoi je fais ça, me direz vous ? J'suis en voyage pour plusieurs mois, j'ai d'autres choses à foutre.<br />
+<p>Le rom hacking, c’est globalement la modification d’une rom (je vous fais pas l’insulte de vous expliquer ce qu’est une rom hein) pour ajouter, modifier ou supprimer des éléments. Par exemple, rendre le jeu plus difficile en ajoutant des ennemis, ou ce genre de trucs. Ça se fait pas mal sur des jeux 2D (NES, megadrive, etc), parce que c’est plus simple (pas de gestion de la 3D, archi basique, blablabla).<br />
+Pourquoi je fais ça, me direz vous ? J’suis en voyage pour plusieurs mois, j’ai d’autres choses à foutre.<br />
 Baahhhh quand il y a 15 heures ou plus de trajet, sans internet, faut bien passer le temps, et regarder par la fenêtre, ça va bien 5 minutes :D.<br />
-Pour la petite histoire, j'ai retrouvé, juste avant mon départ, ma N64 avec un de mes jeux préférés : Star Wars Shadows Of The Empire. Un jeu un peu pourri, pas facile à jouer, mais j'étais gosse et c'était mon premier jeu N64 :).<br />
-Du coup, je me suis amusé à le refaire, et à tenter de le speedrunner. Problème : j'y connais rien speedrun, et j'suis nul à chier, donc j'arrive pas à grand chose. Par contre, je suis pas (trop) mauvais en informatique. Donc dans ma petite tête ça a fait "HEYYYY, MAIS T'AS QU'A TROUVER DES BUGS DANS LE JEU POUR GLITCHER". Et boom, il en a pas fallu plus pour que je me lance dans ce projet !</p>
+Pour la petite histoire, j’ai retrouvé, juste avant mon départ, ma N64 avec un de mes jeux préférés : Star Wars Shadows Of The Empire. Un jeu un peu pourri, pas facile à jouer, mais j’étais gosse et c’était mon premier jeu N64 :).<br />
+Du coup, je me suis amusé à le refaire, et à tenter de le speedrunner. Problème : j’y connais rien speedrun, et j’suis nul à chier, donc j’arrive pas à grand chose. Par contre, je suis pas (trop) mauvais en informatique. Donc dans ma petite tête ça a fait “HEYYYY, MAIS T’AS QU’A TROUVER DES BUGS DANS LE JEU POUR GLITCHER”. Et boom, il en a pas fallu plus pour que je me lance dans ce projet !</p>
 
 <p>Bref, assez parlé de moi, vous voulez pas un journal intime, vous voulez de la technique.<br />
 So, let’s go motherfuckers !</p>
 
 
-          <a class="post-link" href="/pwning-n64-for-fun-speedrun-mipswtfr4300ilol.html">Lire la suite</a>
-
+          <a class="post-link" href="/pwning-n64-for-fun-speedrun-mipswtfr4300ilol">Lire la suite</a>
+    
 
           <h2><a class="post-link" href="/highway-to-serv">Highway to serv</a></h2>
           <p>Je fais une pause dans mes pérégrinations sans fil -principalement parce que je suis pas assez doué pour trouver les infos dont j’ai besoin- et je profite d’un peu de temps libre pour parler réseau.</p>
@@ -141,7 +144,6 @@ Maintenant, place aux explications !</p>
 </footer>
 
 	</main>
-<!-- poulping is fun. test git push -->
 </body>
 
 </html>
