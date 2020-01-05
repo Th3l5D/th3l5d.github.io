@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,7 +8,7 @@
 	<title>Pwning N64 for fun & speedrun : MIPSWTFR4300iLOL</title>
 
 	<link rel="stylesheet" href="/css/main.css">
-	<link rel="canonical" href="https://lsdsecdaemon.com/pwning-n64-for-fun-speedrun-mipswtfr4300ilol.html">
+	<link rel="canonical" href="https://lsdsecdaemon.com/pwning-n64-for-fun-speedrun-mipswtfr4300ilol">
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -26,7 +25,7 @@
 
 <body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
 	<header>
-	<h1><a href="">Lsd Security Daemon</a><br />
+	<h1><a href="https://lsdsecdaemon.com">Lsd Security Daemon</a><br />
 	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
 </header>
 
@@ -38,6 +37,8 @@
 				<li><a href="/categories">Catégories</a></li>
 				 
 				<li><a href="/about/">About Box</a></li>
+				  
+				<li><a href="/game-hacking-links-repo/">Game Hacking Repo</a></li>
 				                 
 				<li><a href="/feed.xml">RSS</a></li>
 
@@ -49,8 +50,8 @@
 	<main>
 		<article>
             <div id="content">
-
-<h2 id="pwning-n64-for-fun--speedrun--mipswtfr4300ilol">Pwning N64 for fun &amp; speedrun : MIPSWTFR4300iLOL</h2>
+			<h2>Pwning N64 for fun & speedrun : MIPSWTFR4300iLOL</h2>
+<time>Jun 18, 2019</time>
 
 <p>Salut les chamallowsmous,</p>
 
@@ -63,7 +64,8 @@ Pour la petite histoire, j’ai retrouvé, juste avant mon départ, ma N64 avec 
 Du coup, je me suis amusé à le refaire, et à tenter de le speedrunner. Problème : j’y connais rien speedrun, et j’suis nul à chier, donc j’arrive pas à grand chose. Par contre, je suis pas (trop) mauvais en informatique. Donc dans ma petite tête ça a fait “HEYYYY, MAIS T’AS QU’A TROUVER DES BUGS DANS LE JEU POUR GLITCHER”. Et boom, il en a pas fallu plus pour que je me lance dans ce projet !</p>
 
 <p>Bref, assez parlé de moi, vous voulez pas un journal intime, vous voulez de la technique.<br />
-So, let’s go motherfuckers !</p>
+So, let’s go motherfuckers !
+<!--more--></p>
 
 <h3 id="environnement">Environnement</h3>
 
@@ -104,7 +106,7 @@ Cette fenêtre est la plus utile de toutes, mais elle reste basique : on ne peut
 
 <p><img src="/assets/images/MIPSWTFR4300iLOL/scripts.png" alt="Fenetre de scripting" /></p>
 
-<p>Mine de rien, elle m’a été super pratique une paire de fois ! Le debuggueur inclut une API (minimaliste certes, mais quand même) qui permet d’automatiser certaines tâches. De plus, on est obligé de passer par là pour certains actions, comme l’automatisation de BreakPoints. Bref. Faut toujours l’avoir dans un coin :).</p>
+<p>Mine de rien, elle m’a été super pratique une paire de fois ! Le debuggueur inclut une API (minimaliste certes, mais quand même) qui permet d’automatiser certaines tâches. De plus, on est obligé de passer par là pour certaines actions, comme l’automatisation de BreakPoints. Bref. Faut toujours l’avoir dans un coin :).</p>
 
 <h4 id="radare2">radare2</h4>
 
@@ -119,7 +121,7 @@ Du coup, cékoicebordeldeN64 ?</p>
 
 <h4 id="le-proc-principal">Le proc principal</h4>
 
-<p>La N64 embarque une proc 64 bits, cadençé à 93.75Mhz créé par MIPS Technologies. Ce proc est connu sous le nom de VR4300. C’est une version dérivée du R4300i, lui même dérivé du R4200, qui comprend certains modifications que je ne maîtrise absolument pas. La seule différence notable que j’ai pu remarquer est l’utilisation d’opcodes non définis dans un MIPS classique (BEQZ par exemple, mais qui sert juste de raccourci pour une autre instructions).<br />
+<p>La N64 embarque une proc 64 bits, cadençé à 93.75Mhz créé par MIPS Technologies. Ce proc est connu sous le nom de VR4300. C’est une version dérivée du R4300i, lui même dérivé du R4200, qui comprend certaines modifications que je ne maîtrise absolument pas. La seule différence notable que j’ai pu remarquer est l’utilisation d’opcodes non définis dans un MIPS classique (BEQZ par exemple, mais qui sert juste de raccourci pour une autre instructions).<br />
 Pour ceux qui veulent plein de détails techniques imbitables, la <a href="http://datasheets.chipdb.org/MIPS/R4300i_datasheet.pdf">datasheet est dispo</a>.</p>
 
 <h4 id="le-reality-coprocessor">Le Reality CoProcessor</h4>
@@ -158,7 +160,10 @@ Par exemple :</p>
   <li><code class="highlighter-rouge">c.eq.d</code></li>
 </ul>
 
-<p>font parties de la même famille. Il faut les lire comme <code class="highlighter-rouge"><b>C</b>ompare | <b>L</b>ess <b>T</b>han/<b>G</b>reater <b>T</b>han/<b>EQ</b>ual register X, register Y | as <b>S</b>ingle/<b>D</b>ouble</code>.</p>
+<p>font parties de la même famille. Il faut les lire comme</p>
+<blockquote>
+  <p><strong>C</strong>ompare | <strong>L</strong>ess <strong>T</strong>han/<strong>G</strong>reater <strong>T</strong>han/<strong>EQ</strong>ual register X, register Y | as <strong>S</strong>ingle/<strong>D</strong>ouble.</p>
+</blockquote>
 
 <p>De ce que j’en sais (c’est à dire pas tant que ça), on ne peut pas travailler sur des registres généraux et floating en même temps. Faire un <code class="highlighter-rouge">multu t0, f4</code> n’est -à priori- pas possible.<br />
 Il faut donc utiliser des instructions pour envoyer les valeurs d’un registre général vers un floating (LWC, MTC par exemple). Une fois que les opérations coproc sont faites, on utilise d’autres instructions (SWC, MFC) pour récupérer une valeur d’un registre floating.</p>
@@ -294,14 +299,12 @@ int_var = (int)double_var
   <li><a href="http://infrid.com/rcp64/documents.php">infrid.com</a> : un petit repo contenant des liens utiles sur MIPS et la N64</li>
   <li><a href="http://ultra64.ca/files/documentation/silicon-graphics/SGI_R4300_RISC_Processor_Specification_REV2.2.pdf">ultra64.ca</a> : la doc technique du R4300</li>
   <li><a href="http://en64.shoutwiki.com/wiki/Main_Page">en64.shoutwiki.com</a> : une perle ! On trouve pas mal d’infos sur le fonctionnement MIPS. Je l’ai trouvé sur le tard, mais il est super utile !</li>
-  <li>
-    <p><a href="https://github.com/MIPT-ILab/mipt-mips/wiki/MIPS-Instruction-Set">github.com</a> : un listing des intructions MIPS. Vous en faites pas, je vais faire un article à part là dessus.</p>
-  </li>
+  <li><a href="https://github.com/MIPT-ILab/mipt-mips/wiki/MIPS-Instruction-Set">github.com</a> : un listing des intructions MIPS. Vous en faites pas, je vais faire un article à part là dessus.</li>
 </ul>
 
 <p>* Pourquoi toujours 4 et 8, et pas 1, 2, ou autre ? Remember ? Les instructions sont codées sur 4 octets. Faut écouter quand on parle :p</p>
-<p>** On fait un left shift en fait :)</p>
 
+<p>** On fait un left shift en fait :)</p>
 
 
 
@@ -330,11 +333,10 @@ s.setAttribute('data-timestamp', +new Date());
             <div>
 		</article>
 		 <footer>
-	<p>Lsd Security Daemon (c) 2017-2019</p>
+	<p>Lsd Security Daemon (c) 2017</p>
 </footer>
 
 	</main>
 </body>
 
 </html>
-
