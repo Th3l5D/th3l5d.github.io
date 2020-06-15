@@ -149,3 +149,8 @@ thead {
  
 tr:nth-child(even) {background: #eee}
 
+main img {
+  margin-left: 50%;
+  transform: translateX(-50%);
+  max-width: 1000px;
+}

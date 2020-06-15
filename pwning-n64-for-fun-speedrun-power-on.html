@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Pwning N64 for fun & speedrun : Power On</title>
+
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="canonical" href="https://lsdsecdaemon.com//security/2020/06/15/pwning-n64-for-fun-speedrun-power-on.html">
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-108520000-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head> 
+
+
+<body onload="document.body.style.backgroundImage = 'url(\'/assets/images/octopus'+(Math.ceil( Math.random() * 5 ))+'.jpg\')';">
+	<header>
+	<h1><a href="">Lsd Security Daemon</a><br />
+	<img src="/assets/images/logo.png" alt="LSD Security Daemon" /></h1>
+</header>
+
+<aside>
+	<div class="container">
+		<nav>
+			<ul>
+				<li><a href="/">Blog</a></li>
+				<li><a href="/categories">Catégories</a></li>
+				<li><a href="/game-hacking-links-repo.html">Game Hack Repo</a></li>
+				 
+				<li><a href="/about/">About Box</a></li>
+				                 
+				<li><a href="/feed.xml">RSS</a></li>
+
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+	<main>
+		<article>
+            <div id="content">
+
+<h2 id="pwning-n64-for-fun--speedrun--power-on">Pwning N64 for fun &amp; speedrun : Power On</h2>
+
+<p>Coucou les pamplemoussesroux,</p>
+
+<p>Dans mes articles précédents, j’expliquais pourquoi je m’intéressais à la N64.<br />
+A vrai dire, ça me servira pas spécialement dans la vie : qui de nos jours utilise un proc MIPS ? Pas grand monde à priori, tout le monde veut du x86_64 ou de l’ARM.
+Cela dit, je pourrais me la péter en disant que je suis un expert reverse engineering n64, je trouverais peut être une lsdette comme ça. Surtout, ça me permet de chopper des mécanismes en reverse d’une manière générale, et ça, c’est pas un mal.</p>
+
+<p>Ce coup ci, on va rentrer dans le vif du sujet et voir comment on commence l’analyse réelle d’un jeu from scratch.<br />
+Bref. Let’s dig into it, buddys !</p>
+
+<!--more-->
+<h3 id="le-démarrage">Le démarrage</h3>
+
+<p>Reminder : il existe déjà la <a href="https://lsdsecdaemon.com/pwning-n64-for-fun-speedrun-mipswtfr4300ilol" target="_blank">partie 1</a>, et la <a href="https://lsdsecdaemon.com/pwning-n64-for-fun-speedrun-instruction-set" target="_blank">partie 1.5</a>. J’oblige personne à les lire, mais bon, vous risquez de pas tout comprendre :p</p>
+
+<h4 id="first-step--se-renseigner">First step : se renseigner</h4>
+
+<p>Rappelez vous, j’y connais rien dans en RE console ! Du coup, l’idée c’est de montrer ma démarche, en expliquant un peu mes tribulations.</p>
+
+<p>La première chose à faire, c’est de se renseigner un peu sur l’existant ! Le rom hacking, c’est une scène à part entière, il y a donc déjà sûrement des infos quelque part, sur la manière de commencer d’une façon générale, et même avec un peu de chance, des infos spécifiques à Star Wars Shadows Of The Empire.</p>
+
+<p>Niveau infos générales, on a quelques tutos, mais principalement pour les consoles encore plus old school (SNES, NES, etc.). La N64, c’est le niveau du dessus, donc on trouve moins de ressources. Ou alors je ne sais pas les chercher, au choix.<br />
+Cela dit, je ne suis quand même pas le premier à m’intéresser à ça, et je suis tombé sur le <a href="http://jaytheham.com/tink/" target="_blank">blog d’un mec</a> qui s’amusait à bidouiller un jeu de course, ainsi que quelques sites sympas, listés en fin d’article.<br />
+La plupart des gros jeux (Zelda OOT, Mario 64, etc) ont été ponçés plusieurs fois, et il y a pas mal de ressources dessus. Malheureusement, SOTE ne fait pas partie des “gros jeux”. On trouvera éventuellement quelques <a href="https://docs.google.com/document/d/1pECmZzPmw6goVHZKf0m9HCx065Rjp-FxOWLnqDGYVl8/edit" target="_blank">adresses mémoire utiles</a>, mais pas de quoi casser trois pipes à un term nux. En plus, j’ai trouvé ce lien trop tard, ça aurait pu m’aider -_-.</p>
+
+<p>Bref, comme l’existant n’existe pas, je suis parti from scratch, avec mon bit et mon couteau, et j’ai tatonné sur la manière de démarrer le reverse n64.</p>
+
+<h4 id="la-base-de-la-base">La base de la base</h4>
+
+<p>La première chose à faire, même si c’est pas d’une grande utilité, c’est de chercher des chaînes de caractères juicy : sur un malentedu, on peut trouver quelques chaînes de debug.<br />
+Pour ça, un basique coup de <code class="highlighter-rouge">strings</code> nous retourne une palanquée de texte. Beaucoup de choses inutiles, principalement les textes descriptifs. Mais surtout… CA :</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/getalife.png" alt="Get a liiiiiife" /></p>
+
+<p>Une sorte de “Fuck U morron”, avec 25 ans de décallage x).<br />
+En vrai, hormis le coté troll du message, cela signifie surtout que, déjà en 1996, les devs se doutaient déjà que des petits <del>cons</del> malins comme moi s’amusaient déjà à faire du reverse. En 1996. Il y a près de 25 ans. On parle d’un temps où internet n’existait (quasi) pas, et où seuls quelques élus savaient faire du RE. Perso, je trouve ça fou.</p>
+
+<p>Anyway. Rien de vraiment très utile via <code class="highlighter-rouge">strings</code> pour SOTE, mais ça valait le coup d’essayer. On passe à la suite.</p>
+
+<h4 id="trouver-un-point-dentrée">Trouver un point d’entrée</h4>
+
+<p>Je l’ai déjà dit, j’suis un peu moisi en reverse, donc je vais surement utiliser des techniques de boloss que personne n’utilise parce que c’est idiot.<br />
+MAIS : 1. “if it works, it ain’t stoopid” <sup id="fnref:1"><a href="#fn:1" class="footnote">1</a></sup>, 2. Si vous avez mieux à me proposer, je suis bien évidemment preneur :).</p>
+
+<p>Mon but, c’est -pour rappel- de trouver des bugs à exploiter. Et pour ça, un point essentiel, c’est qu’il faut comprendre les mécanismes du jeu : où sont enregistrées les données du joueur, des ennemis, les stats, etc etc. En gros, trouver les données lues ou écrites. 
+Le problème, c’est qu’on a un bin assez “gros” à reverser, donc analyser tout l’ASM en step by step depuis l’Entry Point pour trouver LA fonction sexy n’est pas forcément pertinent, limite chiant.</p>
+
+<p>Du coup, pour trouver des datas intéressantes, on a la solution simple, que j’ai utilisé, et celle bien plus intelligente du pote sideway, <a href="https://sideway.re/Reverse-Engineering-alttp-GBA-ep1/" target="_blank">qui fait un rom hack de Zelda A link to the past</a>.<br />
+Ma méthode simple est de faire un gros diff des familles, au niveau de la mémoire. Ca tombe bien, Project64 nous permet de faire ça :)</p>
+
+<h4 id="un-quoi--un-diff--mais-pourquoi-faire-">Un quoi ? Un diff ? Mais pourquoi faire ?</h4>
+
+<p>Ca vient, ça vient, je t’explique jeune impatient. Un diff va nous permettre de faire une analyse de la RAM à deux instants différents.
+Pour savoir où sont stockées les infos, il “suffit” donc de sauvegarder la RAM deux fois ET dans deux états que l’on maitrise à peu près. Je vous z’explique :</p>
+
+<p>Quand on joue à un jeu, les informations du joueur sont enregistrées en mémoire : points de vies, munitions, position, armes disponibles, etc.<br />
+En suivant cette idée, on va faire un premier snapshot de la mémoire, modifier une de ces informations (par exemple en changeant d’arme), puis faire un deuxième snapshot.</p>
+
+<p>Ainsi, en analysant les deux sauvegardes de la RAM en parallèle, on trouvera quelles modifications on été effectuées par l’action faite.<br />
+Attention cependant, pour faire un diff efficace, il faut changer UNE stat à la fois. Si on fait plusieurs changements, on verra bien des modifs en ram, <a href="https://sciencing.com/setup-controlled-science-experiment-2044405.html" target="_blank">mais pour savoir à quoi ça correspond, bisou</a>…</p>
+
+<p>J’ai donc choisi de faire un diff sur le nombre de munitions restantes. Pour cela, j’ai chargé mon niveau, avancé jusqu’à un point me permettant de récupérer des munitions, sans ennemi à proximité (et oui, un ennemi qui est visible a ses stats aussi, donc il influencerait sur l’analyse), et j’ai fait une première sauvegarde de la RAM. Puis un bon coup de lance missile pour décrémenter le nombre de munitions, et boomz ! Une deuxième sauvegarde.</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/diff.gif" alt="Kaboooom !" /></p>
+
+<p>Le reste est ensuite assez “mainstream”. On lance un tool de diff (ici WinMerge, avec le plugin analyse de binaires) pour avoir une vue côte à côte des deux dumps mémoire, et… bah on lit quoi…</p>
+
+<p>Comme on ne peut pas savoir précisément à quel endroit de la RAM sont sauvegardées les datas, j’ai tout dumpé (8mo, quand même<sup id="fnref:2"><a href="#fn:2" class="footnote">2</a></sup>) et j’ai tout vérifié manuellement.<br />
+Pour information, un diff de 8mo, c’est genre super chiant à analyser : même si les deux dumps n’ont que quelques secondes d’écart, il se passe plein de choses en quelques secondes dans la RAM (des compteurs incrémentés, des pointeurs modifiés, etc)<sup id="fnref:3"><a href="#fn:3" class="footnote">3</a></sup>, du coup, differ prend beaucoup de temps, car de nombreuses données ont changé.<br />
+Après une bonne heure de recherche, j’ai enfin pu trouver un endroit intéressant :</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/bin_diff.png" alt="All your bytes are belong to us" /></p>
+
+<p>On voit ici que sur le dump de gauche, on a la valeur 70. A droite, on remarque qu’elle a été modifiée en 60. Alors, pourquoi cette adresse est intéressante ?<br />
+Déjà parce que je montre uniquement l’octet kivabien et pas tous ceux que j’ai testé et qui sont faux. Et ensuite parce que c’est un des rares octets qui décrémente de manière cohérente (on passe pas de FE à 32 par exemple).</p>
+
+<h4 id="validation">Validation</h4>
+
+<p>Bon. Très bien. On a trouvé un octet, à l’adresse <code class="highlighter-rouge">0x801A92DC</code> qui <em>semble</em> être intéressant. Mais du coup, il va falloir valider cette théorie.<br />
+Comment ? Bah en jouant, tout simplement ^^.</p>
+
+<p>Comme je l’expliquais dans mon premier article, la fenêtre mémoire s’amuse à faire Matrix quand on joue, parce que les données sont mises à jour en temps réel.<br />
+Du coup il suffit de lancer une game, ouvrir la fenêtre mémoire en affichant le bon octet, et de tirer. Si l’octet est modifié, on peut être quasiment certain que c’est le nombre de munitions. So, on va essayer :</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/check_shoot.gif" alt="Check dat byte!" /></p>
+
+<p>Bingo !<br />
+Cela dit, afin d’être certain à 100%, un autre test est à effectuer : modifier directement l’octet en ram, et voir si cela change quelque chose dans le jeu. (On fait l’inverse du test précédent quoi ^^)</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/check_byte.gif" alt="Double check dat byte!!" /></p>
+
+<p>Re-bingo !<br />
+On sait maintenant où se situe le nombre de munitions pour les seekers (l’arme que j’utilise). Une petite danse de la victoire s’impose.<br />
+\o/ /o/ \o\ /o/ |o/ |o\ |o| \o| /o|</p>
+
+<p>Cela dit, c’est bien mignon tout ça, mais il m’a fallu une paire d’heures pour trouve UNE information. Et des infos, il y en a pas mal. J’ai pas non plus envie de passer des jours entiers là dessus… On va essayer de trouver une autre manière de faire !</p>
+
+<h2 id="gratter-plus-dinfos">Gratter plus d’infos</h2>
+
+<h3 id="die--retry">Die &amp; Retry</h3>
+
+<p>Afin d’aller plus vite pour détecter les différentes informations du joueur, on va partir d’un constat bête mais stupide : les données sont organisées. Et par organisées, j’entends “On va mettre toutes les infos relatives au joueur dans le même coin”.</p>
+
+<p>En suivant cette idée, on va simplement jouer avec les octets autour de l’adresse <code class="highlighter-rouge">0x801A92DC</code>, afin de voir ce que ça peut fait :D<br />
+C’est un peu résumé à l’arrache, mais ça donne globalement ça :</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/guess.gif" alt="Manual fuzzing" /></p>
+
+<p>Au bout de quelques minutes, on arrive donc globalement à extraire une sorte de structure, qui en pseudo code<sup id="fnref:5"><a href="#fn:5" class="footnote">4</a></sup> donne quelque chose de ce genre.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dash_infos = struct {
+life_points  = (half word) *0x801A92BC4
+current_weapon_id  = (half word) *0x801A92BC8
+ammo_laser = (word) *0x801A92D0
+ammo_pulsar = (word) *0x801A92D4
+ammo_flame = (word) *0x801A92D8
+ammo_seekers = (word) *0x801A92DC
+ammo_stunner = (word) *0x801A92E0
+ammo_disruptor = (word) *0x801A92E4
+
+} // struct may begin at 0x801A9210
+</code></pre></div></div>
+
+<p>Ce qu’il est important de comprendre dans cette structure, c’est qu’elle est incomplète. A ce stade du reverse, on est totalement dans le noir. On ne peut pas savoir du tout où elle démarre, où elle se termine, et même si toutes les données entre l’adresse de début et de fin supposées appartiennent à cette structure.<br />
+Par exemple, les données de <code class="highlighter-rouge">0x801A92BCA</code> à <code class="highlighter-rouge">0x801A92BCF</code> (entre <code class="highlighter-rouge">current_weapon_id</code> et <code class="highlighter-rouge">ammo_laser</code>), peuvent être liées à la structure, mais n’ont <em>à priori</em> aucun effet sur les infos affichées in-game. On ne peut donc pas savoir ce qu’elles font et si elles sont utiles. A l’inverse, il peut également y avoir des valeurs liées au joueur qui sont totalement ailleurs en RAM et qui n’auraient donc pas été détectées.<br />
+Alors, oui, c’est possible d’avoir plus d’infos, mais pour ça, il faut gratter plus en profondeur dans le code ASM :)</p>
+
+<h3 id="from-addr-to-func">from addr to Func</h3>
+
+<p>Très bien, très bien. On sait où sont rangées les datas liées à Dash Rendar. Ca nous fait une belle jambe hein…<br />
+Mais ce qu’on veut, c’est pas faire le ménage dans la RAM, c’est trouver du glitch. Donc c’est clairement pas suffisant. Alors quoi faire maintenant ?</p>
+
+<p>Et bah, c’est plutôt logique. Maintenant qu’on sait où sont les données, on va pouvoir trouver facilement COMMENT elles sont utilisées.<br />
+Lorsqu’on effectue une action, par exemple en changeant d’arme, le jeu enregistre forcément l’info. En l’occurence, il va le faire dans le champ <code class="highlighter-rouge">current_weapon_id</code> de la structure définie plus haut. Au niveau assembleur, il y aura donc une instruction qui fera en gros “Mets l’ID de l’arme en cours en <code class="highlighter-rouge">0x801A92BC8</code>”.<br />
+Donc, si on pose un BreakPoint en écriture<sup id="fnref:4"><a href="#fn:4" class="footnote">5</a></sup> sur cette adresse, dès qu’on va changer d’arme, elle sera modifiée, on va trigger le BP. En faisant ça, on pourra récupérer l’instruction ASM qui effectue cette écriture, ce qui fait qu’on aura -enfin- du code à reverse :)<br />
+Faisons ça!</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/breakpoint.gif" alt="EL Famoso BreakPoint" /></p>
+
+<p>Woot ! Comme on peut le voir, ça a l’air de fonctionner ! On a bien un bout d’ASM lié au changement d’arme (logique, non ? :D).</p>
+
+<p>Analysons un peu ça ! Je pose mon BP en écriture sur <code class="highlighter-rouge">0x801A92C8</code>, puis je change d’arme ingame.<br />
+Dès le changement d’arme, la fenêtre d’instructions apparait pour me montrer à quelle instruction on a breaké; en l’occurence, en <code class="highlighter-rouge">0x8006EEFC</code>, et on voit notre première ligne d’assembleur \o/ :</p>
+<pre><code class="language-asm">SH V0, 0x00B8 (S0)
+</code></pre>
+
+<p>En gros, cette ligne nous dit : Tu Stores un Halfword qui est en <code class="highlighter-rouge">V0</code> dans l’adresse <code class="highlighter-rouge">S0</code> + <code class="highlighter-rouge">0x00B8</code>.<br />
+Comme je vous ai maché le travail, j’ai mis des gros cadres rouges pour que vous voyez les bonnes infos dans mon gif, mais en gros <code class="highlighter-rouge">V0</code> correspond à 3 et <code class="highlighter-rouge">S0</code> à <code class="highlighter-rouge">0x801A9210</code>. Si on ajoute <code class="highlighter-rouge">0x00B8</code>, on obtient… <code class="highlighter-rouge">0x801A92C8</code>, l’adresse sur laquelle on a mis notre breakpoint :o !<br />
+On retombe bien sur nos pattes, tout va bien :)</p>
+
+<p>Cela dit, on est en plein milieu d’un… “truc”, et on a juste aucune idée d’où ça commence, d’où ça finit, ni rien. Quoikonfé?<br />
+L’idée ici, c’est donc de trouver le début de la fonction qui utilise ce bout de code, fonction que j’ai sobrement nommée <code class="highlighter-rouge">change_weapon</code>.</p>
+
+<h3 id="rrfpt">RRFPT</h3>
+
+<p>La manière la plus facile de trouver le début de la fonction <code class="highlighter-rouge">change_weapon</code>, c’est d’utiliser le registre <code class="highlighter-rouge">RA</code> :)<br />
+Souvenez vous, je l’avais expliqué dans un blogpost précédent : à chaque <code class="highlighter-rouge">JAL</code> (call), on met <code class="highlighter-rouge">PC+8</code> dans le registre <code class="highlighter-rouge">RA</code>. A la fin du call, le <code class="highlighter-rouge">JR</code> (Jump Return, un RET quoi) lit <code class="highlighter-rouge">RA</code> afin de sauter vers l’adresse contenue dans ce registre, et donc revenir à la fonction appelante.</p>
+
+<p>Bref, revenons à nos moutons (électriques). Là, on ne sait pas trop où on est, mais on peut supposer une chose : on est pas dans la boucle principale, mais dans une fonction qui est liée au changement d’arme.<br />
+Du coup, on a “juste” à utiliser le registre <code class="highlighter-rouge">RA</code> pour savoir où se situe le début de la fonction.<br />
+Mais attention ! Encore une fois, on ne sait pas où on est exactement. On peut facilement imaginer quelque chose du genre :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>main
+\_ func_we_dont_care
+\_func_check_input 
+  \_ func_we_dont_need           
+  \_ func_change_weapon          &lt;-- ce qu'on cherche
+    \_ subfunc1                  [|
+      \_ subsubfunc1              |
+        \_ subsubsubfunc1         | on est dans cette partie plus ou moins
+      \_ subsubfunc2              |
+    \_ subfunc2                   |]
+  \_ func_we_still_dont_care
+  [...]
+
+</code></pre></div></div>
+<p>L’idée, c’est donc de remonter les sous fonctions une à une en utilisant le RA, jusqu’à arriver à la fonction <code class="highlighter-rouge">change_weapon</code>. L’idée est la suivante :</p>
+<ul>
+  <li>on exécute le code, et on breake dans <code class="highlighter-rouge">subsubsubfunc1</code> : on récupère le RA. Ce qui nous donne l’endroit de <code class="highlighter-rouge">subsubfunc1</code></li>
+  <li>ensuite, on met un BP à l’adresse de <code class="highlighter-rouge">subsubfunc1</code>, puis on exécute. On breake au niveau de <code class="highlighter-rouge">subsubfunc1</code>, ce qui nous donne le RA de <code class="highlighter-rouge">subfunc1</code></li>
+  <li>on fait pareil : BP sur à l’adresse de <code class="highlighter-rouge">subfunc1</code> et exécution. On breake, on récupère le RA, et boom, ça fait des chocapics, on a l’adresse de <code class="highlighter-rouge">change_weapon</code></li>
+</ul>
+
+<p>Une technique que j’ai sobrement appelé le RRFPT, pour <strong>Reverse RA Following Path Trick</strong>. Aucune idée de si cette “technique” porte déjà un nom ou pas. Mais un acronyme idiot me paraissait une bonne idée.</p>
+
+<p>Par contre, comme on peut le voir dans mon schéma, il est important de faire attention. Si on ne remonte pas assez avec le RRFPT, on sera toujours dans une sous fonction de <code class="highlighter-rouge">change_weapon</code>. Si on remonte trop, on se retrouvera dans <code class="highlighter-rouge">check_input</code>, ce qu’on ne veut pas.<br />
+Mais bref, assez de théorie, place à la pratique.</p>
+
+<p>On pose donc notre Write BP sur l’adresse de <code class="highlighter-rouge">current_weapon_id</code>, en <code class="highlighter-rouge">0x801A92BC8</code>, puis on va appuyer sur la touche pour changer d’arme, ce qui provoque le BP. On peut donc supposer que jusqu’à présent, je me suis pas trop planté dans ce que je dis, et qu’on est dans la bonne routine.</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/return_address.png" alt="La fameuse Return Address" /></p>
+
+<p>Si vous regardez l’image très attentivement, vous verrez que je sélectionne <code class="highlighter-rouge">RA</code>, qui a la valeur <code class="highlighter-rouge">0x8006EEE4</code>.<br />
+On va donc faire plusieurs choses :</p>
+<ul>
+  <li>aller regarder à l’adresse de <code class="highlighter-rouge">RA-8</code> pour récupérer l’adresse du JAL (<code class="highlighter-rouge">0x8006EEDC</code>)</li>
+  <li>supprimer le BP actuel, pour en mettre un nouveau en <code class="highlighter-rouge">RA-8</code>. Gaffe, maintenant, il faut mettre un BP en exec, puisqu’on veut breake quand on va appeler le JAL.</li>
+  <li>changer d’arme ingame une fois de plus</li>
+  <li>récupérer le <code class="highlighter-rouge">RA</code></li>
+</ul>
+
+<p>En effectuant une seconde fois la manipulation, on trouve l’adresse <code class="highlighter-rouge">0x80073178</code>. On sait donc maintenant que le call en <code class="highlighter-rouge">0x8006EEDC</code> était bien une sous fonction de <code class="highlighter-rouge">change_weapon</code>.</p>
+
+<p>Si on continue de faire ça une paire de fois, on remarque assez vite qu’on breake même sans changer d’arme. Ca signifie qu’on est remonté trop loin.<br />
+En effet, comme aucune action n’a été faite de notre part, c’est que ce break est lié à autre chose.<br />
+Comme c’est un peu galère à expliquer, j’ai fait un beau schéma pas piqué des hannetons !</p>
+
+<p><img src="/assets/images/MIPSWTFR4300ipoweron/bp_explications.gif" alt="RRFPT steps" /></p>
+
+<p>On peut donc tenter de résumer nos trouvailles de cette manière :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>while(1):
+    if on_a_appuyé_sur_la_touche():
+        change_weapon(some args) # call vers 0x80073178
+
+
+def change_weapon(some args): # 0x80073178
+    unknown_subfunction(some args) # call vers 0x8006EEDC
+
+def unknown_subfunction(some args): # 0x8006EEDC
+    dash_infos[current_weapon_id] = some_int # 0x801A92BC8
+</code></pre></div></div>
+
+<p>Avec tout ça, on sait donc où commence la fonction permettant de changer d’arme, ce qui veut dire que… CA Y EST ! ON A ENFIN DU CODE A REVERSE ! \o/</p>
+
+<p>Maiiiiiis on verra ça dans l’article suivant ;).</p>
+
+<h2 id="quelques-tips-au-passage">Quelques tips au passage</h2>
+
+<p>Dans ce blogpost, j’ai expliqué ma manière de faire, c’est à dire en apprenant sur le tas. Cela dit, avec le recul, il aurait été possible d’utiliser d’autres méthodes (que je testerai peut être plus tard), dont je vais parler succintement.</p>
+
+<h3 id="monitoring-de-linput-manette">Monitoring de l’input manette</h3>
+
+<p>De manière assez logique, on peut facilement supposer qu’il existe quelque part dans le code un endroit qui vérifie les inputs de la manette, et qu’un morceau de code est exécuté lorsqu’un bouton est appuyé. Il aurait donc été possible de prendre le check de l’input comme entry point, et d’analyser step by step pour trouver l’input qui correspond au bouton de changement d’arme, et donc la fonction <code class="highlighter-rouge">change_weapon</code>. Entre temps, j’ai découvert comment ça marchait à ce niveau, mais à l’époque, j’étais jeune et bête.</p>
+
+<h3 id="rtjmt">RTJMT</h3>
+
+<p>A la place du RRPFT, on aurait pu utiliser le RTJMT : <strong>Real Time JAL Monitoring Trick</strong>. L’idée, derrière ce nom barbare que je viens de trouver, c’est d’utiliser l’API de debug pour enregistrer en temps réel tous les JAL. Pour cela, deux étapes sont nécessaires :</p>
+<ul>
+  <li>un monitoring “témoin”. On ne touche à rien dans le jeu, et on enregistre tous les JAL qui se déclenchent.</li>
+  <li>un monitoring “analyse”. Cette fois, on change d’arme.</li>
+</ul>
+
+<p>En faisant un diff des deux listings de JAL, on peut voir les calls appelés uniquement dans le deuxième monitoring, et donc trouver les addresses de JAL qui ne sont utilisés que pour le changement d’arme.</p>
+
+<p>Ca rejoint en partie la manière de faire de Sideway. J’ai pas inventé le concept, juste mis un nom débile dessus…</p>
+
+<h3 id="diff-multiple">Diff multiple</h3>
+
+<p>Lors de mon diff, il y avait de nombreuses valeurs différentes qui n’avaient aucun rapport avec ce que je cherchais. Il aurait été moins teubé de faire 3 diffs à la place de 2 :</p>
+<ul>
+  <li>un premier “témoin”</li>
+  <li>un deuxième “faux positif”</li>
+  <li>un troisième “analyse”</li>
+</ul>
+
+<p>Un diff entre le témoin et le faux positif aurait permis de révéler les octets modifiés entre deux instants et n’ayant pas de rapport avec la valeur cherchée. Un second diff par la suite entre le témoin et l’analyse, en supprimant les faux positifs détectés juste avant aurait permis d’accélerer la recherche. Th3_l5Dumb, c’est mon nom.</p>
+
+<h3 id="rtdmt">RTDMT</h3>
+
+<p>Une troisième manière de trouver où sont les octets modifiés en RAM lorsqu’on effectue une action serait de faire un RTDMT -un <strong>Real Time Diff Monitoring Trick</strong> : on monitore TOUTE la ram en temps réel et on laisse tourner le jeu.<br />
+Comme ça, on voit tous les octets modifiés. Ensuite, on enlève du monitoring ces octets et on effectue notre action. Ainsi, on détecterait automatiquement les octets modifiés lorsqu’on fait quelque chose.<br />
+Cela dit, il y a quand même deux gros drawbacks : déjà, on a 8mo à monitorer en permanence, j’imagine pas la chute de perf ; ensuite, une action peut modifier plusieurs choses en RAM. Par exemple, un saut va avoir un bit “is_jumping” ainsi que la hauteur actuelle du perso. Ca nous laisse plus que quelques données à analyser, mais on est pas sur un match à 100%.<br />
+C’est d’ailleurs ce qu’à fait liveroverflow sur son <a href="https://www.youtube.com/watch?v=p8OBktd42GI" target="_blank">reverse de pokemon missingno :)</a></p>
+
+<h2 id="le-mot-de-la-fin">Le mot de la fin</h2>
+
+<p>On commence à rentrer doucement dans l’analyse de la rom. Pour l’instant, la seule information réellement intéressante, c’est l’adresse de la fonction <code class="highlighter-rouge">change_weapon</code>. Le reste n’a finalement été que tests et hints.</p>
+
+<p>Au passage, je dis ça à tout fins utiles : à chaque fois que je lis un article de ce genre, je me suis toujours dit “le mec c’est un tueur !”. Les autres peut être, moi non. Ce que je présente en quelques paragraphes ici représente principalement les choses intéressantes. Les échecs critiques, j’en ai pas parlé plus que ça. Et ça peut donner l’impression que je sais ce que je fais. Mais pas du tout. Je suis totalement dans le noir, et je fais juste croire que je suis bon pour avoir un peu de fame.</p>
+
+<p>Next time : Analyse de toute la fonction <code class="highlighter-rouge">change_weapon</code>. On va vraiment parler d’ASM ;)</p>
+
+<h2 id="liens-utiles">Liens utiles</h2>
+
+<ul>
+  <li><a href="https://n64.dev/" target="_blank">n64.dev</a> : une petite perle, qui contient de nombreuses ressources et docs sur la N64</li>
+  <li><a href="https://www.reddit.com/r/n64/comments/8qo5g0/so_you_want_to_mod_your_favourite_game_andor/" target="_blank">So you want to mod your favorite game</a> : une autre liste de liens, qui peut compléter n64.dev</li>
+  <li><a href="https://github.com/RenaKunisaki/mariokart64/wiki" target="_blank">GitHub Mario Kart 64</a> : un repo github qui contient plusieurs docs et notes sur le reverse de mario kart 64</li>
+  <li><a href="https://tcrf.net/Star_Wars:_Shadows_of_the_Empire_(Nintendo_64)" target="_blank">The Cutting Room Floor</a> : un site sur lequel on peut perdre des heures à regarder tous les oublis des devs JV</li>
+  <li><a href="http://jaytheham.com/tink/" target="_blank">Blog de JayTheHam</a> : le blog d’un mec qui reverse un jeu de voiture, dont je parlais en début d’article</li>
+  <li><a href="https://sideway.re/" target="_blank">Blog de Sideway</a> : je l’ai déjà mis en début d’article, mais son reverse de Zelda est tellement cool, qu’il faut le mettre une deuxième fois :)</li>
+  <li><a href="https://www.youtube.com/watch?v=p8OBktd42GI" target="_blank">Vidéos de lifeoverflow sur pokemon partie 1</a> et <a href="https://www.youtube.com/watch?v=bxzrtU7VtPU" target="_blank">partie 2</a> : Comme d’hab, un excellent boulot d’explication de la part de liveoverflow sur la manière de reverse un jeu !</li>
+</ul>
+
+<hr />
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:1">
+      <p>L’idée, c’est de se raccrocher aux branches comme on peut ^^’ <a href="#fnref:1" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>Tel l’idiot que je suis, je n’ai pas pensé une seule seconde que la N64 contient 8mo de RAM UNIQUEMENT quand le ram pack est pluggué. Par défaut, il n’y a que 4mo, j’aurais donc pu désactiver le ram pack dans la conf de l’émulateur et gagner du temps… <a href="#fnref:2" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>J’ai même découvert depuis que ce con de jeu pioche apparemment des fichiers de la ROM pour les écrire en RAM toutes les secondes. Niveau efficacité du diff, on est sur un bon zéro pointé du coup. <a href="#fnref:3" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p>Quand je dis pseudocode, c’est même pas réellement du pseudocode. C’est un mélange de C, de python, de cacaprout, et de ce que vous voulez. L’idée, c’est juste de rendre compréhensible la RAM et l’ASM. Donc le “pseudocode” que je montre ne sera jamais fonctionnel ni même normé, mais il est facile à lire. <a href="#fnref:5" class="reversefootnote">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p>Il est en fait plus intéressant de mettre un BP en écriture, plutôt qu’en lecture. Pourquoi ? Car il est possible que la valeur soit lue souvent, et donc on risque des faux positifs, car le BP se ferait trigger inutilement (j’ai fait le test hein, faut me croire). A moins que les devs aient codé avec le cul, la valeur est modifiée uniquement lorsqu’on effectue une action. Et c’est bien le cas. <a href="#fnref:4" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://lsdsecdaemon.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+            <div>
+		</article>
+		 <footer>
+	<p>Lsd Security Daemon (c) 2017-2019</p>
+</footer>
+
+	</main>
+</body>
+
+</html>
+
